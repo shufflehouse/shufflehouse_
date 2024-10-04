@@ -14,3 +14,12 @@
     color: black;
     background-color: white;
 }
+
+/* Sign Up Button */
+.btn.btn-primary.primaryColor {
+    border-color: black;
+}
+.btn.btn-primary.primaryColor:hover {
+    border-color: black:
+    color: black;
+}
