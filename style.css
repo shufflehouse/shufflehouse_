@@ -1,3 +1,7 @@
-h6.classTitle.mb-1 {
+.mb-1.card-title.h5 {
+    color: red;
+}
+
+.mb-1 .card-title .h5 {
     color: red;
 }
