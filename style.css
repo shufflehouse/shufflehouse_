@@ -4,6 +4,8 @@
 }
 
 /* Login Button */
-.btn-outline-primary.primaryColor {
-    border-color: #fff;
+.btn.btn-outline-primary.my-2.my-sm-0.primaryColor {
+    border-color: black;
+    color: black;
 }
+
