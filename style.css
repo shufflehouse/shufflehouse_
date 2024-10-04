@@ -1,3 +1,9 @@
+/* Back Button */
 .primaryColor.pl-0.nav-link {
     color: black;
+}
+
+/* Login Button */
+.btn-outline-primary.primaryColor {
+    border-color: #fff;
 }
