@@ -23,3 +23,8 @@
     border-color: black:
     color: black;
 }
+
+/* View Details Button */
+.primaryColor.m-0.p-0.btn.btn-link {
+    color: black;
+}
