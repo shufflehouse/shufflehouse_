@@ -1,0 +1,29 @@
+// Select the paragraph element with the specified classes
+const personTextElements = document.querySelectorAll('.m-0.p-0.font-weight-bold.card-text');
+
+// Loop through each element to check the text
+personTextElements.forEach(personText => {
+    const personName = personText.textContent.trim(); // Get the text content and trim any extra whitespace
+    let imageSrc = '';
+
+    // Determine the image source based on the text content
+    if (personName === "Karla") {
+        imageSrc = "https://karla.com"; // Replace with actual URL for Karla's image
+    } else if (personName === "Elena") {
+        imageSrc = "https://elena.com"; // Replace with actual URL for Elena's image
+    }
+
+    // Create an image element if an image source is determined
+    if (imageSrc) {
+        const imageElement = document.createElement('img'); // Create a new img element
+        imageElement.src = imageSrc; // Set the src attribute
+        imageElement.className = "rounded-circle"; // Add any classes if needed
+        imageElement.style.objectFit = "cover"; // Apply styles as needed
+        imageElement.style.objectPosition = "center";
+        imageElement.style.width = "100%"; // Adjust size
+        imageElement.style.height = "100%"; // Adjust size
+
+        // Insert the image before the paragraph element
+        personText.parentNode.insertBefore(imageElement, personText);
+    }
+});
