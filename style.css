@@ -1,7 +1,3 @@
-.mb-1.card-title.h5 {
-    color: red;
-}
-
-.mb-1 .card-title .h5 {
-    color: red;
+.card-list__card-group {
+    background-color: red;
 }
