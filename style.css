@@ -5,12 +5,12 @@
 
 /* Login Button */
 .btn.btn-outline-primary.my-2.my-sm-0.primaryColor {
-    border-color: black!important;
-    color: black!important;
-    background-color: #ffe652!important;
+    border-color: black;
+    color: black;
+    background-color: #ffe652;
 }
 .btn.btn-outline-primary.my-2.my-sm-0.primaryColor:hover {
-    border-color: black!important;
-    color: black!important;
-    background-color: white!important;
+    border-color: black;
+    color: black;
+    background-color: white;
 }
