@@ -32,3 +32,12 @@
 a.primaryColor {
     color: black;
 }
+
+.modal-content {
+    height: auto;
+    border: initial;
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+    margin: auto;
+    width: 100%;
+    margin-top: 0!important;
+}
