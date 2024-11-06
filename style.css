@@ -44,6 +44,10 @@ a.primaryColor {
 
 
 
+
+/* FONTS */
+
+
 /* Regular */
 @font-face {
     font-family: 'Apercu';
@@ -79,5 +83,131 @@ a.primaryColor {
 body {
     font-family: 'Apercu';
 }
+
+
+
+
+
+/* Forms */
+
+/* Footer Form */
+
+.kRWymP > * {
+    max-width: 100%!important;
+    width: 100%;
+}
+
+form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    grid-template-rows: auto auto;
+}
+
+form > div {
+    display: grid;
+    flex-direction: column;
+    row-gap: 0px;
+    column-gap: 20px;
+    width: 200%!important;
+}
+
+.form-group.mr-1.w-100 {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.d-flex.flex-column {
+    row-gap: 8px;
+    column-gap: 8px;
+    margin-top: -80px;
+    margin-left: -10px;
+    padding-right: 15px;
+}
+
+.d-flex {
+    grid-column: 2;
+    grid-row: 2;
+    justify-content: center;
+}
+
+
+
+— — — 
+
+
+
+/* Style for "First Name" form group */
+#_first_name::placeholder {
+    color: transparent;
+}
+
+.form-group:nth-child(1) {
+    position: relative;
+}
+
+.form-group:nth-child(1)::before {
+    content: "First Name";
+    color: #a9a9a9;
+    position: absolute;
+    top: 45%;
+    left: 12px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 14px;
+}
+
+/* Style for "Last Name" form group */
+#_last_name::placeholder {
+    color: transparent;
+}
+
+.form-group:nth-child(2) {
+    position: relative;
+}
+
+.form-group:nth-child(2)::before {
+    content: "Last Name";
+    color: #a9a9a9;
+    position: absolute;
+    top: 45%;
+    left: 12px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 14px;
+}
+
+/* Style for "Email" form group */
+#_email::placeholder {
+    color: transparent;
+}
+
+.form-group:nth-child(3) {
+    position: relative;
+}
+
+.form-group:nth-child(3)::before {
+    content: "Email";
+    color: #a9a9a9;
+    position: absolute;
+    top: 45%;
+    left: 12px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 14px;
+}
+
+— — —
+
+.mb-4.ml-1.btn.btn-primary {
+    border: 1px solid black;
+    color: rgb(0, 0, 0);
+    background-color: rgb(255, 230, 82);
+    width: auto;
+    border-radius: 10px;
+    height: 48px;
+    transition: all .2s;
+}
+
 
 
