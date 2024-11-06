@@ -84,7 +84,8 @@ body {
     font-family: 'Apercu';
 }
 
-
-.btn.btn-outline-primary.my-2.my-sm-0.primaryColor {
+/* Login + Profile */
+.btn.btn-outline-primary.my-2.my-sm-0.primaryColor,
+#fullWidthWidget > div:nth-child(1) > div > div:nth-child(2) > div {
     display: none;
 }
