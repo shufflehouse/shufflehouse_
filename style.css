@@ -44,6 +44,40 @@ a.primaryColor {
 
 
 
+/* Regular */
+@font-face {
+    font-family: 'Apercu';
+    src: url('https://raw.githubusercontent.com/USERNAME/REPO_NAME/BRANCH_NAME/fonts/apercu/Apercu-Pro-Regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
 
+/* Bold */
+@font-face {
+    font-family: 'Apercu';
+    src: url('https://raw.githubusercontent.com/USERNAME/REPO_NAME/BRANCH_NAME/fonts/apercu/Apercu-Pro-Bold.otf') format('opentype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+/* Italic */
+@font-face {
+    font-family: 'Apercu';
+    src: url('https://raw.githubusercontent.com/USERNAME/REPO_NAME/BRANCH_NAME/fonts/apercu/Apercu-Pro-Italic.otf') format('opentype');
+    font-weight: normal;
+    font-style: italic;
+}
+
+/* Bold Italic */
+@font-face {
+    font-family: 'Apercu';
+    src: url('https://raw.githubusercontent.com/USERNAME/REPO_NAME/BRANCH_NAME/fonts/apercu/Apercu-Pro-Bold-Italic.otf') format('opentype');
+    font-weight: bold;
+    font-style: italic;
+}
+
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Apercu', sans-serif;
+}
 
 
