@@ -110,3 +110,84 @@ a.primaryColor {
 .mt-3.offeringDescription {
     display: none;
 }
+
+
+
+
+
+/* Filters */
+
+/* Filter Border */
+.css-yk16xz-control {
+    border-color: black!important;
+}
+
+/* Filter Title */
+ .css-2b097c-container .div .div .div {
+    color: black!important;
+}
+
+/* Filter Button */
+.d-block.d-sm-flex.align-items-center.btn.btn-outline-primary.primaryColor {
+    background-color: #FFE652!important;
+}
+
+
+
+
+/* Video Library */
+
+/* Title Block */
+.on-demand-category__videos-container .d-flex.d-row.align-items-baseline {
+    width: 100%!important;
+    justify-content: space-between;
+    align-items: center!important;
+    margin-bottom: 1rem;
+}
+
+/* Title */
+.on-demand-category__videos-container .d-flex.d-row.align-items-baseline .primaryFont {
+    width: 75%!important;
+    margin-bottom: 0px!important;
+}
+
+/* View All Button */
+.on-demand-category__videos-container .d-flex.d-row.align-items-baseline .primaryColor.noDecoration {
+    background-color: #FFE652!important;
+    border-radius: 20px!important;
+    padding: .5rem!important;
+    border: black solid 1px!important;
+}
+
+
+
+
+/* On-Demand Banner */
+
+
+/* On-Demand Banner Image */
+.on-demand__banner-img-wrapper.col-lg-5.col-12.offset-lg-1 {
+    display: none!important;
+}
+
+/* On-Demand Banner Title Block */
+.on-demand__banner .d-flex.flex-row.on-demand__banner-item.row.no-gutters .on-demand__banner-caption.col-lg-6.col-12 {
+    margin-top: 0px!important;
+}
+
+/* On-Demand Banner Buttons */
+.on-demand__banner .d-flex.flex-row.on-demand__banner-item.row.no-gutters .on-demand__banner-caption.col-lg-6.col-12 .container-fluid:nth-child(2) {
+    display: none!important;
+}
+
+/* On-Demand Video Thumbnails */
+.on-demand__card-img-outer-wrapper {
+    border: 2px black solid!important;
+    border-radius: .5rem!important;
+    margin-bottom: 1rem!important;
+}
+
+/* On-Demand Video Thumbanil Title */
+.on-demand__card-title.mb-1.card-title.h5 {
+    font-size: 1rem!important;
+}
