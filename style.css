@@ -7,6 +7,22 @@ mb-4 .div {
 }
 
 
+/* Back Buttons */
+
+/* Removed On-Demand Back Button */
+.on-demand__prev-arrow.primaryColor.pl-0.nav-link {
+    display: none!important;
+}
+/* Removed Schedule Back Button */
+.d-flex.mb-1.px-0.py-3.justify-content-between {
+    /* display: none!important; */
+}
+
+
+
+
+
+
 /* Schedule */
 
 /* Date Circle */
@@ -290,11 +306,15 @@ a.primaryColor {
 }
 
 /* On-Demand Hero Descriptions */
-
 .on-demand__hero-lead {
     font-size: 1rem!important;
 }
 
+/* On Demand Hero Descriptions Padding */
+.on-demand__banner-caption.col-lg-6.col-12 .container-fluid {
+    padding-right: 0px!important;
+    padding-left: 0px!important;
+}
 
 
 /* Pricing */
