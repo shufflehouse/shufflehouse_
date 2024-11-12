@@ -41,15 +41,32 @@
 
 /* Sign Up Button */
 .btn.btn-primary.primaryColor {
-    border-color: black!important;
     background-color: #FFE652!important;
     color: black!important;
+    border-radius: .5rem!important;
+    padding: .5rem 1rem!important;
+    border: 1.5px black solid!important;
 }
 
 .btn.btn-primary.primaryColor:hover {
-    border-color: black!important;
+    border: 1.5px black solid!important;
     color: black!important;
+    border-radius: .5rem!important;
+    padding: .5rem 1rem!important;
 }
+
+.btn.btn-primary.primaryColor span {
+    font-weight: 500!important;
+}
+
+/* Purchase Button */
+.primaryColor.my-4.btn.btn-primary {
+    width: 100%!important;
+}
+
+
+
+
 
 /* View Details Buttonn */
 .primaryColor.m-0.p-0.btn.btn-link {
