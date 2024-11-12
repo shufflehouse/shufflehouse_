@@ -1,6 +1,7 @@
 /* All Images */
 
-.div img {
+.on-demand__card-img,
+mb-4 .div {
     border: 2px black solid!important;
     border-radius: .5rem!important;
 }
