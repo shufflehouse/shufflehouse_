@@ -138,8 +138,10 @@ a.primaryColor {
 /* Programs */
 
 /* Description */
+@media only screen and (max-width: 768px) {
 .mt-3.offeringDescription {
     display: none;
+}
 }
 
 
