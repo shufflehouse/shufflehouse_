@@ -299,29 +299,3 @@ a.primaryColor {
 .card.w-100.my-3.p-2 {
     padding: 1rem!important;
 }
-
-
-
-
-
-/* Ensure the container allows line breaks */
-.on-demand__card-title {
-  display: inline-block;
-  white-space: pre-wrap; /* Allow new lines and breaks */
-  word-wrap: break-word; /* Break words as needed */
-}
-
-/* Use the ::before and ::after to add custom breaks */
-.on-demand__card-title {
-  display: inline-block;
-}
-
-.on-demand__card-title:after {
-  content: '\A'; /* Adds line break after the text */
-  white-space: pre; /* Keeps the space format intact */
-}
-
-/* Apply specific breaking on words with specific characters (for example, '-') */
-.on-demand__card-title {
-  white-space: normal;
-}
