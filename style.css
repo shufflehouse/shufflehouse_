@@ -1,11 +1,16 @@
 /* Schedule */
+
+/* Date Circle */
 .week-range__day--selected .week-range__day-digit {
     background: #FFE652!important;;
     color: black!important;
     border: 1px black solid!important;
 }
 
-
+/* Schedule Sign Up Button */
+.p-1.card-body .btn.btn-primary.primaryColor {
+    border-radius: 20px!important;
+}
 
 
 
@@ -149,13 +154,17 @@ a.primaryColor {
 .on-demand-category__videos-container .d-flex.d-row.align-items-baseline .primaryFont {
     width: 75%!important;
     margin-bottom: 0px!important;
+    font-size: 1.5rem!important;
 }
 
 /* View All Button */
 .on-demand-category__videos-container .d-flex.d-row.align-items-baseline .primaryColor.noDecoration {
     background-color: #FFE652!important;
     border-radius: 20px!important;
-    padding: .5rem!important;
+    padding-top: .25rem!important;
+    padding-bottom: .25rem!important;
+    padding-right: .5rem!important;
+    padding-left: .5rem!important;
     border: black solid 1px!important;
 }
 
@@ -164,6 +173,10 @@ a.primaryColor {
 
 /* On-Demand Banner */
 
+/* Back Button Margin */
+.on-demand-category__videos-container .d-flex.flex-column .on-demand__prev-arrow.primaryColor.pl-0.nav-link {
+    margin-top: 0px!important;
+}
 
 /* On-Demand Banner Image */
 .on-demand__banner-img-wrapper.col-lg-5.col-12.offset-lg-1 {
@@ -176,7 +189,7 @@ a.primaryColor {
 }
 
 /* On-Demand Banner Buttons */
-.on-demand__banner .d-flex.flex-row.on-demand__banner-item.row.no-gutters .on-demand__banner-caption.col-lg-6.col-12 .container-fluid:nth-child(2) {
+.on-demand__banner-caption .container-fluid .row:nth-of-type(2) {
     display: none!important;
 }
 
@@ -184,10 +197,36 @@ a.primaryColor {
 .on-demand__card-img-outer-wrapper {
     border: 2px black solid!important;
     border-radius: .5rem!important;
-    margin-bottom: 1rem!important;
+    padding-bottom: 1rem!important;
+}
+.on-demand__card-img-inner-wrapper {
+    border-radius: .5rem!important;
 }
 
-/* On-Demand Video Thumbanil Title */
+/* On-Demand Video Thumbnail Title */
 .on-demand__card-title.mb-1.card-title.h5 {
     font-size: 1rem!important;
+    margin-top: 1rem!important;
+}
+
+/* On-Demand Timestamp */
+.on-demand__card-duration {
+    border-radius: .5rem!important;
+    color: black!important;
+    background-color: white!important;
+}
+
+@media only screen and (max-width: 768px) {
+/* On-Demand Thumbnail Size Mobile */
+.slick-slide {
+    width: 240px!important;
+}
+}
+
+
+/* Pricing */
+
+/* Pricing Option Cards */
+.card.w-100.my-3.p-2 {
+    padding: 1rem!important;
 }
