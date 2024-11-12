@@ -188,6 +188,7 @@ a.primaryColor {
 @media only screen and (max-width: 768px) {
 .on-demand-category__videos-container .d-flex.d-row.align-items-baseline .primaryFont {
     font-size: 1.5rem!important;
+    padding-left: 8px!important;
 }
 }
 
@@ -268,9 +269,59 @@ a.primaryColor {
 }
 
 
+/* On-Demand View All Video Groups Mobile */
+@media only screen and (max-width: 768px) {
+/* Set the base width for all .on-demand__card-link elements */
+.on-demand__card-link.col-xl-3.col-lg-4.col-md-6.col-sm-6 {
+    width: 50%;
+}
+
+/* Target every third element and set its width to 100% */
+.on-demand__card-link.col-xl-3.col-lg-4.col-md-6.col-sm-6:nth-child(3n) {
+    width: 100%;
+}
+}
+
+/* On-Demand Filter Block Mobile */
+@media only screen and (max-width: 768px) {
+.on-demand-category__filter {
+    padding-left: 1rem;
+}
+}
+
+
+
+
+
 /* Pricing */
 
 /* Pricing Option Cards */
 .card.w-100.my-3.p-2 {
     padding: 1rem!important;
+}
+
+
+
+
+
+/* Ensure the container allows line breaks */
+.on-demand__card-title {
+  display: inline-block;
+  white-space: pre-wrap; /* Allow new lines and breaks */
+  word-wrap: break-word; /* Break words as needed */
+}
+
+/* Use the ::before and ::after to add custom breaks */
+.on-demand__card-title {
+  display: inline-block;
+}
+
+.on-demand__card-title:after {
+  content: '\A'; /* Adds line break after the text */
+  white-space: pre; /* Keeps the space format intact */
+}
+
+/* Apply specific breaking on words with specific characters (for example, '-') */
+.on-demand__card-title {
+  white-space: normal;
 }
