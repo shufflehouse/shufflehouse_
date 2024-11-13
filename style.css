@@ -8,6 +8,12 @@ mb-4 .div {
 
 
 /* Back Buttons */
+@media only screen and (max-width: 768px) {
+/* Removed Pricing Back Button */
+.d-flex.mb-1.px-0.py-3.justify-content-between {
+    display: none!important;
+}
+}
 
 /* Removed On-Demand Back Button */
 .on-demand__prev-arrow.primaryColor.pl-0.nav-link {
