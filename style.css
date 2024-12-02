@@ -1,3 +1,11 @@
+/* 
+.btn.btn-outline-primary.my-2.my-sm-0.primaryColor,
+#fullWidthWidget > div:nth-child(1) > div > div:nth-child(2) > div {
+    display: none;
+}
+*/
+
+
 /* All Images */
 
 .on-demand__card-img,
@@ -149,11 +157,6 @@ a.primaryColor {
 
 
 
-/* Login + Profile */
-.btn.btn-outline-primary.my-2.my-sm-0.primaryColor,
-#fullWidthWidget > div:nth-child(1) > div > div:nth-child(2) > div {
-    display: none;
-}
 
 
 
