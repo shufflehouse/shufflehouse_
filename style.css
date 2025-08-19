@@ -195,6 +195,16 @@ a.primaryColor {
 
 /* Video Library */
 
+
+#fullWidthWidget 
+  section.container 
+  .SectionComponent 
+  .row > .col-sm-12.col-md-6.col-lg-6:nth-child(2) {
+    display: none !important;
+}
+
+
+
 /* Title Block */
 .on-demand-category__videos-container .d-flex.d-row.align-items-baseline {
     width: 100%!important;
