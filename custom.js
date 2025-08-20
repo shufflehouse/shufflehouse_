@@ -1,0 +1,153 @@
+(function () {
+  const CONFIG = {
+    // Tweak these selectors if needed
+    loginButtonSelectors: [
+      'button.primaryColor',              // your example
+      'button.btn-outline-primary',
+      'button, [role="button"], a[role="button"]'
+    ],
+    loginButtonText: ['login'],           // lowercased includes check
+    avatarSelectors: [
+      '.sb-avatar', '.sb-avatar__image',  // your example
+      '.dropdown .sb-avatar', '.dropdown .sb-avatar__image'
+    ],
+    paywallSelectors: [
+      '.paywall', '[data-paywall]', '.sb-paywall', 
+      '.subscription-paywall'
+    ],
+    pollMs: 1500,                         // fallback polling interval
+    heartbeatMs: 5000,                    // periodic “still alive” log
+    postMessage: true,                    // bubble state to parent
+    logPrefix: '[LoginRead]'
+  };
+
+  let prevState = 'unknown';
+  let seq = 0;
+  let pollId = null;
+  let heartbeatId = null;
+  let observer = null;
+
+  function textIncludes(el, needles) {
+    if (!el) return false;
+    const t = (el.textContent || '').trim().toLowerCase();
+    return needles.some(n => t.includes(n));
+  }
+
+  function anyMatches(selectors, filterFn) {
+    for (const sel of selectors) {
+      const nodes = Array.from(document.querySelectorAll(sel));
+      if (filterFn) {
+        const match = nodes.find(filterFn);
+        if (match) return true;
+      } else if (nodes.length) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function detect() {
+    // Detect a visible “Login” button
+    const hasLoginButton = anyMatches(
+      CONFIG.loginButtonSelectors,
+      (el) => {
+        // must be visible-ish
+        const style = window.getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') return false;
+        // must read like “Login”
+        return textIncludes(el, CONFIG.loginButtonText);
+      }
+    );
+
+    // Detect avatar / account UI
+    const hasAvatar = anyMatches(CONFIG.avatarSelectors);
+
+    // Detect paywall (optional signal)
+    const hasPaywall = anyMatches(CONFIG.paywallSelectors);
+
+    // Decide state (prefer explicit login button, else avatar, else unknown)
+    let state = 'unknown';
+    if (hasLoginButton) state = 'logged-out';
+    else if (hasAvatar) state = 'logged-in';
+
+    return { state, hasLoginButton, hasAvatar, hasPaywall };
+  }
+
+  function log(kind, data) {
+    const ts = new Date().toISOString();
+    const id = ++seq;
+    const base = `${CONFIG.logPrefix} [#${id}] ${kind} @ ${ts}`;
+    const details = `state=${data.state} | hasLoginBtn=${data.hasLoginButton} | avatar=${data.hasAvatar} | paywall=${data.hasPaywall}`;
+    if (kind === 'change') {
+      console.info(`${base} → ${details}`);
+    } else {
+      console.log(`${base} → ${details}`);
+    }
+  }
+
+  function emitToParent(data) {
+    if (!CONFIG.postMessage) return;
+    try {
+      if (window.top && window.top !== window) {
+        window.top.postMessage(
+          { source: 'arketa-login-monitor', ...data },
+          '*'
+        );
+      }
+    } catch (_) { /* ignore cross-origin errors */ }
+  }
+
+  function tick(kind) {
+    const res = detect();
+    // expose a simple flag for your own scripts
+    window.__arketaLoginState = res.state;
+
+    if (res.state !== prevState) {
+      prevState = res.state;
+      log('change', res);
+      emitToParent({ type: 'change', ...res });
+    } else if (kind === 'heartbeat') {
+      log('heartbeat', res);
+      emitToParent({ type: 'heartbeat', ...res });
+    }
+  }
+
+  function start() {
+    // Initial tick after DOM is ready enough
+    tick('init');
+
+    // Mutation observer to catch dynamic swaps
+    observer = new MutationObserver(() => tick('dom'));
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: false,
+    });
+
+    // Fallback polling
+    pollId = setInterval(() => tick('poll'), CONFIG.pollMs);
+
+    // Periodic heartbeat to show it’s still running
+    heartbeatId = setInterval(() => tick('heartbeat'), CONFIG.heartbeatMs);
+
+    console.log(`${CONFIG.logPrefix} monitor started.`);
+  }
+
+  function stop() {
+    if (observer) observer.disconnect();
+    if (pollId) clearInterval(pollId);
+    if (heartbeatId) clearInterval(heartbeatId);
+    console.log(`${CONFIG.logPrefix} monitor stopped.`);
+  }
+
+  // expose stop handle
+  window.__loginMonitor = { stop };
+
+  // Start when the page is interactive (works even if injected early)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
+})();
