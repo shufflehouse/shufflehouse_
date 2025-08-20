@@ -4,7 +4,7 @@
       location.pathname.endsWith('/iframe/shufflehouse/account') ||
       location.pathname.includes('/iframe/shufflehouse/account');
     document.documentElement.classList.toggle('is-account', isAccount);
-  }
+  } 
 
   // Handle SPA-style route changes too
   const _push = history.pushState, _replace = history.replaceState;
