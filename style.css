@@ -5,6 +5,11 @@
 }
 */
 
+/* Hide Logo */
+
+#logo {
+    display: none!important;
+}
 
 /* All Images */
 
@@ -17,11 +22,12 @@ mb-4 .div {
 
 /* Back Buttons */
 @media only screen and (max-width: 768px) {
-/* Removed Pricing Back Button */
-.d-flex.mb-1.px-0.py-3.justify-content-between {
-    display: none!important;
+  /* Hide everywhere EXCEPT the account route */
+  html:not(.is-account) .d-flex.mb-1.px-0.py-3.justify-content-between {
+    display: none !important;
+  }
 }
-}
+
 
 
 
