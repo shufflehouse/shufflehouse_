@@ -1,20 +1,21 @@
 (function () {
   const CFG = {
-    gateClass: 'is-video',   // html class to gate checks
+    gateClass: 'is-video',
     memberClass: 'is-member',
-    selector: '.video-js',   // treat as “video present”
+    videoSel: '.video-js',
+    filterSel: '.on-demand-category__filter',
     pollMs: 1000
   };
 
-  let prev = 'unknown';
-  let seq = 0;
+  let prev = 'unknown', seq = 0;
 
   function detect() {
     const html = document.documentElement;
     const onVideo = html.classList.contains(CFG.gateClass);
-    const hasVideo = onVideo && !!document.querySelector(CFG.selector);
-    const state = onVideo && hasVideo ? 'member' : 'none';
-    return { onVideo, hasVideo, state };
+    const hasFilter = onVideo && !!document.querySelector(CFG.filterSel);
+    const hasVideo  = onVideo && !!document.querySelector(CFG.videoSel);
+    const state = onVideo && (hasFilter || hasVideo) ? 'member' : 'none';
+    return { onVideo, hasFilter, hasVideo, state };
   }
 
   function apply(res) {
@@ -31,7 +32,7 @@
       if (res.state !== prev) {
         prev = res.state;
         console.info(
-          `[VideoRead] [#${++seq}] ${kind} → onVideo=${res.onVideo} | hasVideo=${res.hasVideo} | state=${res.state}`
+          `[VideoRead] [#${++seq}] ${kind} → onVideo=${res.onVideo} | filter=${res.hasFilter} | hasVideo=${res.hasVideo} | state=${res.state}`
         );
         if (window.top && window.top !== window) {
           window.top.postMessage({ source: 'arketa-video-monitor', type: 'change', ...res }, '*');
