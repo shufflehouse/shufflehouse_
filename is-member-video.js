@@ -2,6 +2,7 @@
   const CFG = {
     gateClass: 'is-video',
     memberClass: 'is-member',
+    notMemberClass: 'isnot-member',
     selector: '.video-js',
     pollMs: 1000
   };
@@ -13,17 +14,21 @@
     const html = document.documentElement;
     const onVideo = html.classList.contains(CFG.gateClass);
     const hasVideo = onVideo && !!document.querySelector(CFG.selector);
-    const state = onVideo && hasVideo ? 'member' : 'none';
+    let state = 'none';
+    if (onVideo && hasVideo) state = 'member';
+    else if (onVideo && !hasVideo) state = 'not-member';
     return { onVideo, hasVideo, state };
   }
 
   function apply(res) {
     const html = document.documentElement;
-    if (res.state === 'member') {
-      html.classList.add(CFG.memberClass);
-    } else {
-      html.classList.remove(CFG.memberClass);
+    if (!res.onVideo) {
+      html.classList.remove(CFG.memberClass, CFG.notMemberClass);
+      window.__arketaVideoMember = 'none';
+      return;
     }
+    html.classList.toggle(CFG.memberClass, res.state === 'member');
+    html.classList.toggle(CFG.notMemberClass, res.state === 'not-member');
     window.__arketaVideoMember = res.state;
   }
 
