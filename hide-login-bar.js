@@ -19,10 +19,8 @@
     return document.querySelector(AVATAR_SEL) != null;
   }
   function getState() {
-    // Prefer your existing monitor if present
     const s = window.__arketaLoginState;
     if (s === 'logged-in' || s === 'logged-out') return s;
-    // Fallback lightweight detection
     if (hasLoginButton()) return 'logged-out';
     if (hasAvatar()) return 'logged-in';
     return 'unknown';
@@ -34,25 +32,18 @@
     if (state === prev) return;
     prev = state;
     if (state === 'logged-out') {
-      bar.style.display = 'none';
+      bar.style.visibility = 'hidden';
     } else if (state === 'logged-in') {
-      bar.style.display = ''; // restore
+      bar.style.visibility = 'visible';
     }
-    // leave as-is for 'unknown'
   }
 
   function start() {
     apply();
-
-    // React to DOM mutations (SPA changes, avatar mount, etc.)
     const mo = new MutationObserver(apply);
-    mo.observe(document.documentElement, {subtree:true, childList:true, attributes:true, characterData:false});
-
-    // Short polling safety net
+    mo.observe(document.documentElement, {subtree:true, childList:true, attributes:true});
     const pollId = setInterval(apply, 800);
     setTimeout(() => clearInterval(pollId), 15000);
-
-    // If your login monitor posts messages, respond to changes
     window.addEventListener('message', (e) => {
       if (e.data?.source === 'arketa-login-monitor' && e.data.type === 'change') apply();
     });
