@@ -1,10 +1,6 @@
 (function () {
   const CONFIG = {
-    // broadened selectors to catch common players
-    videoSelectors: [
-      '.video-js', 'video.video-js', '.vjs-tech', 'video', '.vjs-player',
-      'iframe[src*="youtube.com"]', 'iframe[src*="vimeo.com"]'
-    ],
+    videoSelectors: ['.video-js', 'video.video-js', '.vjs-tech'],
     pollMs: 1500,
     heartbeatMs: 5000,
     postMessage: true,
@@ -16,21 +12,32 @@
 
   let prevState = 'unknown';
   let seq = 0;
-  let running = false;
-  let monitorObserver = null;
   let pollId = null;
   let heartbeatId = null;
+  let observer = null;
+  let classObserver = null;
+  let running = false;
+  let scoutId = null; // checks for videos before start
 
-  function anyExists(selectorList) {
+  function visible(el) {
+    if (!el) return false;
+    const st = getComputedStyle(el);
+    if (st.display === 'none' || st.visibility === 'hidden' || st.opacity === '0') return false;
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  }
+
+  function any(selectorList) {
     for (const sel of selectorList) {
-      if (document.querySelector(sel)) return true;
+      const nodes = Array.from(document.querySelectorAll(sel));
+      if (nodes.some(visible)) return true;
     }
     return false;
   }
 
   function detect() {
     const onVideoPage = document.documentElement.classList.contains(CONFIG.htmlGateClass);
-    const hasVideo = onVideoPage && anyExists(CONFIG.videoSelectors); // existence, not visibility
+    const hasVideo = onVideoPage && any(CONFIG.videoSelectors);
     let state = 'unknown';
     if (onVideoPage) state = hasVideo ? 'member' : 'not-member';
     return { onVideoPage, hasVideo, state };
@@ -48,7 +55,8 @@
     const id = ++seq;
     const base = `${CONFIG.logPrefix} [#${id}] ${kind} @ ${ts}`;
     const details = `onVideo=${data.onVideoPage} | hasVideo=${data.hasVideo} | state=${data.state}`;
-    if (kind === 'change') console.info(`${base} → ${details}`); else console.log(`${base} → ${details}`);
+    if (kind === 'change') console.info(`${base} → ${details}`);
+    else console.log(`${base} → ${details}`);
   }
 
   function emitToParent(data) {
@@ -80,8 +88,8 @@
     prevState = 'unknown';
 
     // React to DOM changes while running
-    monitorObserver = new MutationObserver(() => tick('dom'));
-    monitorObserver.observe(document.documentElement, {
+    observer = new MutationObserver(() => tick('dom'));
+    observer.observe(document.documentElement, {
       childList: true,
       subtree: true,
       attributes: true,
@@ -98,7 +106,7 @@
   function stop() {
     if (!running) return;
     running = false;
-    if (monitorObserver) monitorObserver.disconnect();
+    if (observer) observer.disconnect();
     if (pollId) clearInterval(pollId);
     if (heartbeatId) clearInterval(heartbeatId);
     document.documentElement.classList.remove(CONFIG.memberClass, CONFIG.notMemberClass);
@@ -106,35 +114,39 @@
     console.log(`${CONFIG.logPrefix} monitor stopped.`);
   }
 
-  // Gate: only start when is-video AND a video element exists.
+  // Gate: require is-video AND a visible video to start
   function evaluateGate() {
     const onVideo = document.documentElement.classList.contains(CONFIG.htmlGateClass);
-    const hasVid = onVideo && anyExists(CONFIG.videoSelectors);
+    const hasVid = onVideo && any(CONFIG.videoSelectors);
 
-    if (!running && onVideo && hasVid) start();
-    if (running && !onVideo) stop();
-    // If running and videos appear/disappear, tick() handles class flips.
-    if (running) tick('gate');
+    if (!running && onVideo && hasVid) {
+      clearInterval(scoutId);
+      scoutId = null;
+      start();
+      return;
+    }
+    if (running && !onVideo) {
+      stop();
+      return;
+    }
+    // If onVideo but no video yet and not running, keep scouting
+    if (!running && onVideo && !hasVid && !scoutId) {
+      scoutId = setInterval(evaluateGate, CONFIG.pollMs);
+    }
   }
 
-  // Always-on lightweight watcher to trigger start/stop and restarts when videos appear later.
-  const gateObserver = new MutationObserver(evaluateGate);
-  gateObserver.observe(document.documentElement, {
-    childList: true,       // detect new video nodes
-    subtree: true,
-    attributes: true,      // detect html class flips
-    attributeFilter: ['class']
-  });
+  // Watch for html.is-video flips
+  function watchHtmlClass() {
+    classObserver = new MutationObserver(evaluateGate);
+    classObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    evaluateGate(); // initial check
+  }
 
-  // SPA and lifecycle nudges
-  document.addEventListener('DOMContentLoaded', evaluateGate);
-  window.addEventListener('load', evaluateGate);
-  window.addEventListener('popstate', evaluateGate);
-  window.addEventListener('hashchange', evaluateGate);
+  window.__videoMonitor = { start, stop, evaluateGate };
 
-  // Cheap scout while idle
-  setInterval(evaluateGate, 1500);
-
-  // Manual hooks
-  window.__videoMonitor = { start, stop, evaluateGate, tick };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchHtmlClass, { once: true });
+  } else {
+    watchHtmlClass();
+  }
 })();
