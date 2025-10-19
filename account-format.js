@@ -1,67 +1,67 @@
 (function () {
-  // Remove "About me" section on all sizes
-  (function removeAboutMe() {
-    const h4 = Array.from(document.querySelectorAll('html.is-account .userInformationForm h4'))
-      .find(el => el.textContent.trim().toLowerCase().startsWith('about me'));
-    if (h4) {
-      const sec = h4.closest('section');
-      if (sec) sec.remove();
-    }
-  })();
+  // wait until SPA renders the section and fields
+  const need = [
+    '#firstName','#lastName','#email','label[for="phone"]',
+    'label[for="avatarImage"]','.form-group.row',
+    'label[for="birthday"]','label[for="address"]',
+    'label[for="timezoneSetting"]','label[for="locationId"]'
+  ];
+  const secSel = 'html.is-account .userInformationForm section:nth-of-type(2)';
 
-  // Desktop-only reorder
-  if (!window.matchMedia('(min-width: 768px)').matches) return;
-
-  const sec = document.querySelector('html.is-account .userInformationForm section:nth-of-type(2)');
-  if (!sec) return;
-
-  // Helpers to grab blocks
-  const byFor = (name) => sec.querySelector(`label[for="${name}"]`)?.closest('.mb-3') || null;
-  const firstName   = sec.querySelector('#firstName')?.closest('.mb-3') || byFor('firstName');
-  const lastName    = sec.querySelector('#lastName')?.closest('.mb-3')  || byFor('lastName');
-  const email       = sec.querySelector('#email')?.closest('.mb-3')     || byFor('email');
-  const phone       = byFor('phone');
-  const birthday    = byFor('birthday');
-  const address     = byFor('address');
-  const timezone    = byFor('timezoneSetting');
-  const location    = byFor('locationId');
-
-  // Profile photo label + sublabel wrapper
-  let profileLabel = null;
-  {
-    const label = sec.querySelector('label[for="avatarImage"]');
-    if (label) profileLabel = label.closest('.align-items-center.d-flex')?.parentElement || null;
-  }
-  // Avatar preview row
-  const avatarRow = sec.querySelector('.form-group.row');
-
-  // Remove pronouns and gender blocks cleanly
-  ['pronouns', 'gender'].forEach(f => {
-    const el = byFor(f);
-    if (el) el.remove();
-  });
-
-  // Create columns right after the header row
-  const headerRow = sec.querySelector(':scope > .row:first-child');
-  const colLeft = document.createElement('div');
-  const colRight = document.createElement('div');
-  colLeft.className = 'col-left';
-  colRight.className = 'col-right';
-
-  if (headerRow && headerRow.nextSibling) {
-    sec.insertBefore(colLeft, headerRow.nextSibling);
-    sec.insertBefore(colRight, colLeft.nextSibling);
-  } else {
-    sec.appendChild(colLeft);
-    sec.appendChild(colRight);
+  function q(root, sel){ return root.querySelector(sel); }
+  function blockByFor(root, f){
+    const lab = q(root, `label[for="${f}"]`);
+    return lab ? (lab.closest('.mb-3') || lab.parentElement) : null;
   }
 
-  // Append in requested order, skipping nulls
-  const appendSafe = (parent, node) => { if (node && node.parentNode) parent.appendChild(node); };
+  function run(){
+    const sec = document.querySelector(secSel);
+    if (!sec || !need.every(s => q(sec, s))) return false;
 
-  // Column 1
-  [firstName, lastName, email, phone].forEach(n => appendSafe(colLeft, n));
+    // remove About me section (anywhere in the form)
+    document.querySelectorAll('html.is-account .userInformationForm h4')
+      .forEach(h => { if (h.textContent.trim().toLowerCase().startsWith('about me')) h.closest('section')?.remove(); });
 
-  // Column 2
-  [profileLabel, avatarRow, birthday, address, timezone, location].forEach(n => appendSafe(colRight, n));
+    // remove pronouns and gender blocks
+    ['pronouns','gender'].forEach(f => { const b = blockByFor(sec, f); if (b) b.remove(); });
+
+    // build columns just after header row
+    const header = q(sec, ':scope > .row:first-child');
+    const left = document.createElement('div'); left.className = 'col-left';
+    const right = document.createElement('div'); right.className = 'col-right';
+    sec.insertBefore(left, header.nextSibling);
+    sec.insertBefore(right, left.nextSibling);
+
+    // gather nodes
+    const firstName = q(sec, '#firstName')?.closest('.mb-3');
+    const lastName  = q(sec, '#lastName')?.closest('.mb-3');
+    const email     = q(sec, '#email')?.closest('.mb-3');
+    const phone     = blockByFor(sec, 'phone');
+
+    // profile photo label + sublabel wrapper
+    let profileLabel = null;
+    const avatarLbl = q(sec, 'label[for="avatarImage"]');
+    if (avatarLbl) profileLabel = avatarLbl.closest('.align-items-center.d-flex')?.parentElement;
+    const avatarRow = q(sec, '.form-group.row');
+
+    const birthday  = blockByFor(sec, 'birthday');
+    const address   = blockByFor(sec, 'address');
+    const tz        = blockByFor(sec, 'timezoneSetting');
+    const location  = blockByFor(sec, 'locationId');
+
+    const append = (p,n)=>{ if(n && n.parentNode) p.appendChild(n); };
+
+    // Column 1: first, last, email, phone
+    [firstName, lastName, email, phone].forEach(n => append(left, n));
+
+    // Column 2: profile label, avatar row, birthday, address, timezone, location
+    [profileLabel, avatarRow, birthday, address, tz, location].forEach(n => append(right, n));
+
+    return true;
+  }
+
+  // Try immediately, then observe until ready
+  if (run()) return;
+  const mo = new MutationObserver(() => { if (run()) mo.disconnect(); });
+  mo.observe(document.documentElement, { childList:true, subtree:true });
 })();
