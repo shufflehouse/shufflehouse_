@@ -1,16 +1,19 @@
 (function () {
-  function setFlag() {
-    const isAccount =
-      location.pathname.endsWith('/iframe/shufflehouse/account') ||
-      location.pathname.includes('/iframe/shufflehouse/account');
-    document.documentElement.classList.toggle('is-account', isAccount);
-  } 
+  function setFlags() {
+    const p = location.pathname || '';
+    const isAccount  = p.includes('/iframe/shufflehouse/account');
+    const isSchedule = p.includes('/iframe/shufflehouse/schedule');
 
-  // Handle SPA-style route changes too
+    document.documentElement.classList.toggle('is-account',  isAccount);
+    document.documentElement.classList.toggle('is-schedule', isSchedule);
+    document.documentElement.setAttribute('data-route',
+      isAccount ? 'account' : isSchedule ? 'schedule' : 'other');
+  }
+
   const _push = history.pushState, _replace = history.replaceState;
-  history.pushState = function(){ _push.apply(this, arguments); setFlag(); };
-  history.replaceState = function(){ _replace.apply(this, arguments); setFlag(); };
-  window.addEventListener('popstate', setFlag);
-  document.addEventListener('DOMContentLoaded', setFlag);
-  setFlag();
+  history.pushState    = function(){ _push.apply(this, arguments);    setFlags(); };
+  history.replaceState = function(){ _replace.apply(this, arguments); setFlags(); };
+  window.addEventListener('popstate', setFlags);
+  document.addEventListener('DOMContentLoaded', setFlags);
+  setFlags();
 })();
