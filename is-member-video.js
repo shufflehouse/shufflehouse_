@@ -15,6 +15,8 @@
   let pollId = null;
   let heartbeatId = null;
   let observer = null;
+  let classObserver = null;
+  let running = false;
 
   function visible(el) {
     if (!el) return false;
@@ -35,10 +37,8 @@
   function detect() {
     const onVideoPage = document.documentElement.classList.contains(CONFIG.htmlGateClass);
     const hasVideo = onVideoPage && any(CONFIG.videoSelectors);
-
     let state = 'unknown';
     if (onVideoPage) state = hasVideo ? 'member' : 'not-member';
-
     return { onVideoPage, hasVideo, state };
   }
 
@@ -46,8 +46,7 @@
     const html = document.documentElement;
     html.classList.toggle(CONFIG.memberClass, res.state === 'member');
     html.classList.toggle(CONFIG.notMemberClass, res.state === 'not-member');
-    // export simple flag
-    window.__arketaVideoMember = res.state; // 'member' | 'not-member' | 'unknown'
+    window.__arketaVideoMember = res.state;
   }
 
   function log(kind, data) {
@@ -83,12 +82,8 @@
   }
 
   function start() {
-    // Only run on html.is-video
-    if (!document.documentElement.classList.contains(CONFIG.htmlGateClass)) {
-      console.log(`${CONFIG.logPrefix} skipped (no ${CONFIG.htmlGateClass}).`);
-      return;
-    }
-
+    if (running) return;
+    running = true;
     tick('init');
 
     observer = new MutationObserver(() => tick('dom'));
@@ -106,18 +101,29 @@
   }
 
   function stop() {
+    if (!running) return;
+    running = false;
     if (observer) observer.disconnect();
     if (pollId) clearInterval(pollId);
     if (heartbeatId) clearInterval(heartbeatId);
     console.log(`${CONFIG.logPrefix} monitor stopped.`);
   }
 
-  // public handle, distinct from other scripts
-  window.__videoMonitor = { stop };
+  // Watch for html.is-video class toggles
+  function watchHtmlClass() {
+    classObserver = new MutationObserver(() => {
+      const hasClass = document.documentElement.classList.contains(CONFIG.htmlGateClass);
+      if (hasClass && !running) start();
+      if (!hasClass && running) stop();
+    });
+    classObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  window.__videoMonitor = { start, stop };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', start, { once: true });
+    document.addEventListener('DOMContentLoaded', watchHtmlClass, { once: true });
   } else {
-    start();
+    watchHtmlClass();
   }
 })();
