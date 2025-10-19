@@ -2,7 +2,6 @@
   const CFG = {
     gateClass: 'is-video',
     memberClass: 'is-member',
-    notMemberClass: 'isnot-member',
     selector: '.video-js',
     pollMs: 1000
   };
@@ -14,20 +13,17 @@
     const html = document.documentElement;
     const onVideo = html.classList.contains(CFG.gateClass);
     const hasVideo = onVideo && !!document.querySelector(CFG.selector);
-    let state = 'unknown';
-    if (onVideo) state = hasVideo ? 'member' : 'not-member';
+    const state = onVideo && hasVideo ? 'member' : 'none';
     return { onVideo, hasVideo, state };
   }
 
   function apply(res) {
     const html = document.documentElement;
-    if (!res.onVideo) {
-      html.classList.remove(CFG.memberClass, CFG.notMemberClass);
-      window.__arketaVideoMember = 'unknown';
-      return;
+    if (res.state === 'member') {
+      html.classList.add(CFG.memberClass);
+    } else {
+      html.classList.remove(CFG.memberClass);
     }
-    html.classList.toggle(CFG.memberClass,     res.state === 'member');
-    html.classList.toggle(CFG.notMemberClass,  res.state === 'not-member');
     window.__arketaVideoMember = res.state;
   }
 
@@ -37,9 +33,14 @@
       apply(res);
       if (res.state !== prev) {
         prev = res.state;
-        console.info(`[VideoRead] [#${++seq}] ${kind} → onVideo=${res.onVideo} | hasVideo=${res.hasVideo} | state=${res.state}`);
+        console.info(
+          `[VideoRead] [#${++seq}] ${kind} → onVideo=${res.onVideo} | hasVideo=${res.hasVideo} | state=${res.state}`
+        );
         if (window.top && window.top !== window) {
-          window.top.postMessage({ source: 'arketa-video-monitor', type: 'change', ...res }, '*');
+          window.top.postMessage(
+            { source: 'arketa-video-monitor', type: 'change', ...res },
+            '*'
+          );
         }
       }
     } catch (e) {
@@ -47,12 +48,11 @@
     }
   }
 
-  // Always on: light polling + a few nav nudges.
   function start() {
     tick('init');
     setInterval(() => tick('poll'), CFG.pollMs);
-    window.addEventListener('popstate',  () => tick('nav'));
-    window.addEventListener('hashchange',() => tick('nav'));
+    window.addEventListener('popstate', () => tick('nav'));
+    window.addEventListener('hashchange', () => tick('nav'));
     document.addEventListener('visibilitychange', () => tick('vis'));
     window.addEventListener('load', () => tick('load'));
   }
