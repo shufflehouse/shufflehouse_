@@ -1,89 +1,60 @@
 (function () {
-  const CONFIG = {
-    videoSelectors: ['.video-js', 'video.video-js', '.vjs-tech'],
-    pollMs: 1500,
-    logPrefix: '[VideoRead]',
-    htmlGateClass: 'is-video',
+  const CFG = {
+    gateClass: 'is-video',
     memberClass: 'is-member',
-    notMemberClass: 'isnot-member'
+    notMemberClass: 'isnot-member',
+    selector: '.video-js',
+    pollMs: 1000
   };
 
-  let prevState = 'unknown';
+  let prev = 'unknown';
   let seq = 0;
 
-  function visible(el) {
-    if (!el) return false;
-    const st = getComputedStyle(el);
-    if (st.display === 'none' || st.visibility === 'hidden' || st.opacity === '0') return false;
-    const r = el.getBoundingClientRect();
-    return r.width > 0 && r.height > 0;
-  }
-
-  function hasVisibleVideo() {
-    for (const sel of CONFIG.videoSelectors) {
-      const list = document.querySelectorAll(sel);
-      for (const n of list) if (visible(n)) return true;
-    }
-    return false;
-  }
-
   function detect() {
-    const onVideoPage = document.documentElement.classList.contains(CONFIG.htmlGateClass);
-    const hasVideo = onVideoPage && hasVisibleVideo();
+    const html = document.documentElement;
+    const onVideo = html.classList.contains(CFG.gateClass);
+    const hasVideo = onVideo && !!document.querySelector(CFG.selector);
     let state = 'unknown';
-    if (onVideoPage) state = hasVideo ? 'member' : 'not-member';
-    return { onVideoPage, hasVideo, state };
+    if (onVideo) state = hasVideo ? 'member' : 'not-member';
+    return { onVideo, hasVideo, state };
   }
 
-  function applyState(res) {
+  function apply(res) {
     const html = document.documentElement;
-    if (!res.onVideoPage) {
-      html.classList.remove(CONFIG.memberClass, CONFIG.notMemberClass);
+    if (!res.onVideo) {
+      html.classList.remove(CFG.memberClass, CFG.notMemberClass);
       window.__arketaVideoMember = 'unknown';
       return;
     }
-    html.classList.toggle(CONFIG.memberClass, res.state === 'member');
-    html.classList.toggle(CONFIG.notMemberClass, res.state === 'not-member');
+    html.classList.toggle(CFG.memberClass,     res.state === 'member');
+    html.classList.toggle(CFG.notMemberClass,  res.state === 'not-member');
     window.__arketaVideoMember = res.state;
   }
 
-  function log(kind, res) {
-    const ts = new Date().toISOString();
-    const id = ++seq;
-    console.log(`${CONFIG.logPrefix} [#${id}] ${kind} @ ${ts} → onVideo=${res.onVideoPage} | hasVideo=${res.hasVideo} | state=${res.state}`);
-  }
-
   function tick(kind) {
-    const res = detect();
-    applyState(res);
-    if (res.state !== prevState) {
-      prevState = res.state;
-      log('change', res);
-      if (window.top && window.top !== window) {
-        try { window.top.postMessage({ source: 'arketa-video-monitor', type: 'change', ...res }, '*'); } catch(e){}
+    try {
+      const res = detect();
+      apply(res);
+      if (res.state !== prev) {
+        prev = res.state;
+        console.info(`[VideoRead] [#${++seq}] ${kind} → onVideo=${res.onVideo} | hasVideo=${res.hasVideo} | state=${res.state}`);
+        if (window.top && window.top !== window) {
+          window.top.postMessage({ source: 'arketa-video-monitor', type: 'change', ...res }, '*');
+        }
       }
-    } else if (kind === 'heartbeat') {
-      log('heartbeat', res);
+    } catch (e) {
+      console.warn('[VideoRead] error:', e);
     }
   }
 
-  // Always running: poll + react to DOM/class changes.
+  // Always on: light polling + a few nav nudges.
   function start() {
     tick('init');
-
-    // React quickly to SPA/nav/class flips and DOM insertions
-    const obs = new MutationObserver(() => tick('dom'));
-    obs.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class', 'style'],
-      childList: true,
-      subtree: true
-    });
-
-    setInterval(() => tick('poll'), CONFIG.pollMs);
-    setInterval(() => tick('heartbeat'), 5000);
-
-    window.__videoMonitor = { tick };
+    setInterval(() => tick('poll'), CFG.pollMs);
+    window.addEventListener('popstate',  () => tick('nav'));
+    window.addEventListener('hashchange',() => tick('nav'));
+    document.addEventListener('visibilitychange', () => tick('vis'));
+    window.addEventListener('load', () => tick('load'));
   }
 
   if (document.readyState === 'loading') {
