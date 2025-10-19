@@ -1,25 +1,11 @@
-/* Hide unwanted fields on all screens */
-html.is-account .userInformationForm label[for="pronouns"],
-html.is-account .userInformationForm label[for="pronouns"] ~ *,
-html.is-account .userInformationForm label[for="gender"],
-html.is-account .userInformationForm label[for="gender"] ~ * {
-  display: none !important;
-}
-
-/* Desktop two-column layout for the SECOND section */
-@media only screen and (min-width: 768px) {
-  html.is-account .userInformationForm section:nth-of-type(2) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem 2rem;
+/* Two columns on desktop for the SECOND section */
+@media (min-width:768px){
+  html.is-account .userInformationForm section:nth-of-type(2){
+    display:grid;grid-template-columns:1fr 1fr;gap:1.25rem 2rem;
   }
-  html.is-account .userInformationForm section:nth-of-type(2) > .row:first-child {
-    grid-column: 1 / -1; /* header spans both */
-  }
+  html.is-account .userInformationForm section:nth-of-type(2) > .row:first-child{grid-column:1 / -1}
   html.is-account .userInformationForm section:nth-of-type(2) .col-left,
-  html.is-account .userInformationForm section:nth-of-type(2) .col-right {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
+  html.is-account .userInformationForm section:nth-of-type(2) .col-right{
+    display:flex;flex-direction:column;gap:1.25rem;
   }
 }
