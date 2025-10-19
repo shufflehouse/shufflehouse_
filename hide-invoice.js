@@ -1,63 +1,60 @@
 (function () {
-  // Hide "Next invoice" <p> nodes under a given root (document or iframe document)
-  function hideNextInvoice(root) {
-    (root || document).querySelectorAll('p.m-0.p-0.card-text').forEach(p => {
-      if (p.textContent.includes('Next invoice')) p.style.display = 'none';
-    });
+  let scanTimer = null, navObserver = null;
+
+  function hideNextInvoiceOnce() {
+    if (!document.documentElement.classList.contains('is-account')) return;
+    const el = Array.from(document.querySelectorAll('p.m-0.p-0.card-text'))
+      .find(p => /Next invoice/i.test(p.textContent));
+    if (el) { el.style.display = 'none'; clearInterval(scanTimer); }
   }
 
-  // Observe DOM mutations and keep hiding when nodes re-appear
-  function observe(rootDoc) {
-    const obs = new MutationObserver(() => {
-      if (document.documentElement.classList.contains('is-account')) hideNextInvoice(rootDoc);
-    });
-    obs.observe(rootDoc.body || rootDoc, { childList: true, subtree: true, characterData: true });
-    return obs;
+  // Start a brief polling window to catch lazy renders
+  function scheduleScan() {
+    if (scanTimer) clearInterval(scanTimer);
+    scanTimer = setInterval(hideNextInvoiceOnce, 400); // stops itself when found
+    // also try immediately
+    hideNextInvoiceOnce();
+    // safety stop after 10s per activation
+    setTimeout(() => clearInterval(scanTimer), 10000);
   }
 
-  // Attach to main doc and any same-origin iframes
-  let observers = [];
-  function attachAll() {
-    // clear old
-    observers.forEach(o => o.disconnect());
-    observers = [];
-
+  function watchTabs() {
     if (!document.documentElement.classList.contains('is-account')) return;
 
-    // main document
-    observers.push(observe(document));
-    hideNextInvoice(document);
+    const nav = document.querySelector('nav.nav.nav-tabs[role="tablist"]');
+    if (!nav) return;
 
-    // same-origin iframes (tabs that swap content)
-    document.querySelectorAll('iframe').forEach(ifr => {
-      try {
-        const idoc = ifr.contentDocument;
-        if (!idoc) return;
-        ifr.addEventListener('load', () => {
-          try {
-            observers.push(observe(ifr.contentDocument));
-            hideNextInvoice(ifr.contentDocument);
-          } catch {}
-        });
-        observers.push(observe(idoc));
-        hideNextInvoice(idoc);
-      } catch {} // cross-origin, ignore
+    // Recreate observer if needed
+    if (navObserver) navObserver.disconnect();
+    navObserver = new MutationObserver(muts => {
+      for (const m of muts) {
+        const t = m.target;
+        if (t instanceof HTMLElement && t.classList.contains('nav-link') && t.classList.contains('active')) {
+          scheduleScan();
+          break;
+        }
+      }
     });
+    navObserver.observe(nav, { subtree: true, attributes: true, attributeFilter: ['class'] });
+
+    // Also react to clicks/keyboard on the tablist
+    nav.addEventListener('click', scheduleScan, { passive: true });
+    nav.addEventListener('keyup', e => { if (e.key === 'Enter' || e.key === ' ') scheduleScan(); });
   }
 
-  // Run now and whenever route or class changes might occur
-  const runSoon = () => setTimeout(attachAll, 100);
-
-  document.addEventListener('DOMContentLoaded', runSoon);
-  window.addEventListener('popstate', runSoon);
-
-  // Hook SPA nav
+  // Re-bind when route changes or DOM is rebuilt
+  const rebindSoon = () => setTimeout(watchTabs, 150);
+  document.addEventListener('DOMContentLoaded', rebindSoon);
+  window.addEventListener('popstate', rebindSoon);
   const _push = history.pushState, _replace = history.replaceState;
-  history.pushState = function(){ _push.apply(this, arguments); runSoon(); };
-  history.replaceState = function(){ _replace.apply(this, arguments); runSoon(); };
+  history.pushState   = function(){ _push.apply(this, arguments); rebindSoon(); };
+  history.replaceState= function(){ _replace.apply(this, arguments); rebindSoon(); };
 
-  // Also poll lightly to catch tab systems that don’t touch history
-  setInterval(attachAll, 1000);
+  // Fallback: periodically ensure observers exist while on account
+  setInterval(() => {
+    if (document.documentElement.classList.contains('is-account')) watchTabs();
+  }, 2000);
 
-  attachAll();
+  // initial
+  watchTabs();
 })();
