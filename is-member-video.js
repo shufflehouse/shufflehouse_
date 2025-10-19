@@ -12,24 +12,19 @@
 
   let prevState = 'unknown';
   let seq = 0;
-  let pollId = null;
-  let heartbeatId = null;
-  let observer = null;
-  let classObserver = null;
-  let running = false;
 
   function visible(el) {
     if (!el) return false;
     const st = getComputedStyle(el);
     if (st.display === 'none' || st.visibility === 'hidden' || st.opacity === '0') return false;
-    const rect = el.getBoundingClientRect();
-    return rect.width > 0 && rect.height > 0;
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
   }
 
   function any(selectorList) {
     for (const sel of selectorList) {
-      const nodes = Array.from(document.querySelectorAll(sel));
-      if (nodes.some(visible)) return true;
+      const nodes = document.querySelectorAll(sel);
+      for (const n of nodes) if (visible(n)) return true;
     }
     return false;
   }
@@ -81,49 +76,32 @@
     }
   }
 
-  function start() {
-    if (running) return;
-    running = true;
-    tick('init');
+  // Always-on listeners
+  const domObserver = new MutationObserver(() => tick('dom'));
+  domObserver.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['class', 'style']
+  });
 
-    observer = new MutationObserver(() => tick('dom'));
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class']
-    });
+  // Extra nudges for SPA and layout shifts
+  window.addEventListener('popstate', () => tick('nav'));
+  window.addEventListener('hashchange', () => tick('nav'));
+  document.addEventListener('visibilitychange', () => tick('vis'));
+  window.addEventListener('load', () => tick('load'));
 
-    pollId = setInterval(() => tick('poll'), CONFIG.pollMs);
-    heartbeatId = setInterval(() => tick('heartbeat'), CONFIG.heartbeatMs);
+  // Periodic polling + heartbeat
+  setInterval(() => tick('poll'), CONFIG.pollMs);
+  setInterval(() => tick('heartbeat'), CONFIG.heartbeatMs);
 
-    console.log(`${CONFIG.logPrefix} monitor started.`);
-  }
-
-  function stop() {
-    if (!running) return;
-    running = false;
-    if (observer) observer.disconnect();
-    if (pollId) clearInterval(pollId);
-    if (heartbeatId) clearInterval(heartbeatId);
-    console.log(`${CONFIG.logPrefix} monitor stopped.`);
-  }
-
-  // Watch for html.is-video class toggles
-  function watchHtmlClass() {
-    classObserver = new MutationObserver(() => {
-      const hasClass = document.documentElement.classList.contains(CONFIG.htmlGateClass);
-      if (hasClass && !running) start();
-      if (!hasClass && running) stop();
-    });
-    classObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-  }
-
-  window.__videoMonitor = { start, stop };
-
+  // Kick off immediately
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', watchHtmlClass, { once: true });
+    document.addEventListener('DOMContentLoaded', () => tick('init'), { once: true });
   } else {
-    watchHtmlClass();
+    tick('init');
   }
+
+  // Expose manual poke
+  window.__videoMonitor = { tick };
 })();
