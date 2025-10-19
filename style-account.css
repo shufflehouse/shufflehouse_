@@ -1,11 +1,15 @@
-/* Two columns on desktop for the SECOND section */
+/* Desktop: two vertical columns inside section 2 */
 @media (min-width:768px){
   html.is-account .userInformationForm section:nth-of-type(2){
     display:grid;grid-template-columns:1fr 1fr;gap:1.25rem 2rem;
   }
-  html.is-account .userInformationForm section:nth-of-type(2) > .row:first-child{grid-column:1 / -1}
-  html.is-account .userInformationForm section:nth-of-type(2) .col-left,
-  html.is-account .userInformationForm section:nth-of-type(2) .col-right{
+  html.is-account .userInformationForm section:nth-of-type(2) > .row:first-child{
+    grid-column:1 / -1;
+  }
+  html.is-account .userInformationForm .col-left,
+  html.is-account .userInformationForm .col-right{
     display:flex;flex-direction:column;gap:1.25rem;
   }
+  html.is-account .userInformationForm .col-left > * ,
+  html.is-account .userInformationForm .col-right > * { width:100%; }
 }
