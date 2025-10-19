@@ -2,27 +2,35 @@
   const CFG = {
     gateClass: 'is-video',
     memberClass: 'is-member',
-    videoSel: '.video-js',                    // “video file thing”
-    filterSel: '.on-demand-category__filter', // “on-demand thing”
-    pollMs: 1000
+    videoSel: '.video-js',
+    iframeId: 'sutraWidgetIframe',
+    pollMs: 1000,
+    heightThreshold: 2000
   };
 
   let prev = 'unknown', seq = 0;
+
+  function iframeHeightPx(el) {
+    if (!el) return 0;
+    try {
+      const cs = getComputedStyle(el);
+      const a = el.offsetHeight || 0;
+      const b = el.clientHeight || 0;
+      const c = parseFloat(cs.height) || 0;
+      const d = el.getBoundingClientRect().height || 0;
+      return Math.max(a, b, c, d);
+    } catch { return 0; }
+  }
 
   function detect() {
     const html = document.documentElement;
     const onVideo   = html.classList.contains(CFG.gateClass);
     const hasVideo  = onVideo && !!document.querySelector(CFG.videoSel);
-    const hasFilter = onVideo && !!document.querySelector(CFG.filterSel);
-
-    // Rule:
-    // 1) is-video && video => member
-    // 2) is-video && !video && filter => member
-    // 3) is-video && !video && !filter => none
-    // 4) not is-video => none
-    const member = onVideo && (hasVideo || (!hasVideo && hasFilter));
-    const state = member ? 'member' : 'none';
-    return { onVideo, hasVideo, hasFilter, state };
+    const iframeEl  = onVideo ? document.getElementById(CFG.iframeId) : null;
+    const iHeight   = iframeHeightPx(iframeEl);
+    const member    = onVideo && (hasVideo || iHeight > CFG.heightThreshold);
+    const state     = member ? 'member' : 'none';
+    return { onVideo, hasVideo, iHeight, state };
   }
 
   function apply(res) {
@@ -39,15 +47,13 @@
       if (res.state !== prev) {
         prev = res.state;
         console.info(
-          `[VideoRead] [#${++seq}] ${kind} → onVideo=${res.onVideo} | hasVideo=${res.hasVideo} | hasFilter=${res.hasFilter} | state=${res.state}`
+          `[VideoRead] [#${++seq}] ${kind} → onVideo=${res.onVideo} | hasVideo=${res.hasVideo} | iframeH=${Math.round(res.iHeight)} | state=${res.state}`
         );
         if (window.top && window.top !== window) {
           window.top.postMessage({ source: 'arketa-video-monitor', type: 'change', ...res }, '*');
         }
       }
-    } catch (e) {
-      console.warn('[VideoRead] error:', e);
-    }
+    } catch (e) { console.warn('[VideoRead] error:', e); }
   }
 
   function start() {
