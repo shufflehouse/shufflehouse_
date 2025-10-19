@@ -3,11 +3,13 @@
     const p = location.pathname || '';
     const isAccount  = p.includes('/iframe/shufflehouse/account');
     const isSchedule = p.includes('/iframe/shufflehouse/schedule');
+    const isVideo = p.includes('/iframe/shufflehouse/videos');
 
     document.documentElement.classList.toggle('is-account',  isAccount);
     document.documentElement.classList.toggle('is-schedule', isSchedule);
+    document.documentElement.classList.toggle('is-video', isVideo);
     document.documentElement.setAttribute('data-route',
-      isAccount ? 'account' : isSchedule ? 'schedule' : 'other');
+      isAccount ? 'account' : isSchedule ? 'schedule' : : isVideo ? 'video' : 'other');
   }
 
   const _push = history.pushState, _replace = history.replaceState;
