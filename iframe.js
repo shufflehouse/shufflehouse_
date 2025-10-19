@@ -1,15 +1,21 @@
 (function () {
   function setFlags() {
-    const p = location.pathname || '';
+    const p = (location.pathname || '').toLowerCase();
+
     const isAccount  = p.includes('/iframe/shufflehouse/account');
     const isSchedule = p.includes('/iframe/shufflehouse/schedule');
-    const isVideo = p.includes('/iframe/shufflehouse/videos');
+    const isVideo    = p.includes('/iframe/shufflehouse/videos');
 
-    document.documentElement.classList.toggle('is-account',  isAccount);
-    document.documentElement.classList.toggle('is-schedule', isSchedule);
-    document.documentElement.classList.toggle('is-video', isVideo);
-    document.documentElement.setAttribute('data-route',
-      isAccount ? 'account' : isSchedule ? 'schedule' : : isVideo ? 'video' : 'other');
+    const route =
+      isAccount  ? 'account'  :
+      isSchedule ? 'schedule' :
+      isVideo    ? 'video'    : 'other';
+
+    const root = document.documentElement;
+    root.classList.toggle('is-account',  isAccount);
+    root.classList.toggle('is-schedule', isSchedule);
+    root.classList.toggle('is-video',    isVideo);
+    root.setAttribute('data-route', route);
   }
 
   const _push = history.pushState, _replace = history.replaceState;
