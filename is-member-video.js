@@ -1,6 +1,10 @@
 (function () {
   const CONFIG = {
-    videoSelectors: ['.video-js', 'video.video-js', '.vjs-tech'],
+    // broadened selectors to catch common players
+    videoSelectors: [
+      '.video-js', 'video.video-js', '.vjs-tech', 'video', '.vjs-player',
+      'iframe[src*="youtube.com"]', 'iframe[src*="vimeo.com"]'
+    ],
     pollMs: 1500,
     heartbeatMs: 5000,
     postMessage: true,
@@ -17,25 +21,16 @@
   let pollId = null;
   let heartbeatId = null;
 
-  function visible(el) {
-    if (!el) return false;
-    const st = getComputedStyle(el);
-    if (st.display === 'none' || st.visibility === 'hidden' || st.opacity === '0') return false;
-    const r = el.getBoundingClientRect();
-    return r.width > 0 && r.height > 0;
-  }
-
-  function any(selectorList) {
+  function anyExists(selectorList) {
     for (const sel of selectorList) {
-      const nodes = document.querySelectorAll(sel);
-      for (const n of nodes) if (visible(n)) return true;
+      if (document.querySelector(sel)) return true;
     }
     return false;
   }
 
   function detect() {
     const onVideoPage = document.documentElement.classList.contains(CONFIG.htmlGateClass);
-    const hasVideo = onVideoPage && any(CONFIG.videoSelectors);
+    const hasVideo = onVideoPage && anyExists(CONFIG.videoSelectors); // existence, not visibility
     let state = 'unknown';
     if (onVideoPage) state = hasVideo ? 'member' : 'not-member';
     return { onVideoPage, hasVideo, state };
@@ -53,8 +48,7 @@
     const id = ++seq;
     const base = `${CONFIG.logPrefix} [#${id}] ${kind} @ ${ts}`;
     const details = `onVideo=${data.onVideoPage} | hasVideo=${data.hasVideo} | state=${data.state}`;
-    if (kind === 'change') console.info(`${base} → ${details}`);
-    else console.log(`${base} → ${details}`);
+    if (kind === 'change') console.info(`${base} → ${details}`); else console.log(`${base} → ${details}`);
   }
 
   function emitToParent(data) {
@@ -63,7 +57,7 @@
       if (window.top && window.top !== window) {
         window.top.postMessage({ source: 'arketa-video-monitor', ...data }, '*');
       }
-    } catch(_) {}
+    } catch (_) {}
   }
 
   function tick(kind) {
@@ -85,12 +79,13 @@
     running = true;
     prevState = 'unknown';
 
+    // React to DOM changes while running
     monitorObserver = new MutationObserver(() => tick('dom'));
     monitorObserver.observe(document.documentElement, {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['class','style']
+      attributeFilter: ['class', 'style']
     });
 
     pollId = setInterval(() => tick('poll'), CONFIG.pollMs);
@@ -106,31 +101,39 @@
     if (monitorObserver) monitorObserver.disconnect();
     if (pollId) clearInterval(pollId);
     if (heartbeatId) clearInterval(heartbeatId);
-    console.log(`${CONFIG.logPrefix} monitor stopped.`);
-    // Reset classes when leaving video context
     document.documentElement.classList.remove(CONFIG.memberClass, CONFIG.notMemberClass);
     prevState = 'unknown';
+    console.log(`${CONFIG.logPrefix} monitor stopped.`);
   }
 
-  // Gate: only start when is-video AND a visible video exists.
+  // Gate: only start when is-video AND a video element exists.
   function evaluateGate() {
     const onVideo = document.documentElement.classList.contains(CONFIG.htmlGateClass);
-    const hasVid = onVideo && any(CONFIG.videoSelectors);
+    const hasVid = onVideo && anyExists(CONFIG.videoSelectors);
 
     if (!running && onVideo && hasVid) start();
     if (running && !onVideo) stop();
-    // If running and video comes/goes, tick will react via observer/poll.
+    // If running and videos appear/disappear, tick() handles class flips.
+    if (running) tick('gate');
   }
 
-  // Lightweight always-on watchers to trigger start/stop.
+  // Always-on lightweight watcher to trigger start/stop and restarts when videos appear later.
   const gateObserver = new MutationObserver(evaluateGate);
-  gateObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  gateObserver.observe(document.documentElement, {
+    childList: true,       // detect new video nodes
+    subtree: true,
+    attributes: true,      // detect html class flips
+    attributeFilter: ['class']
+  });
 
+  // SPA and lifecycle nudges
   document.addEventListener('DOMContentLoaded', evaluateGate);
   window.addEventListener('load', evaluateGate);
   window.addEventListener('popstate', evaluateGate);
   window.addEventListener('hashchange', evaluateGate);
-  setInterval(evaluateGate, 1500); // cheap scout while idle
+
+  // Cheap scout while idle
+  setInterval(evaluateGate, 1500);
 
   // Manual hooks
   window.__videoMonitor = { start, stop, evaluateGate, tick };
