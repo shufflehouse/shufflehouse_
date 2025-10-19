@@ -1,4 +1,3 @@
-<script>
 (function () {
   const BAR_SEL = '.d-flex.mb-1.px-0.py-3.justify-content-between';
   const AVATAR_SEL = '.sb-avatar, .sb-avatar__image, .dropdown .sb-avatar, .dropdown .sb-avatar__image';
@@ -65,4 +64,3 @@
     start();
   }
 })();
-</script>
