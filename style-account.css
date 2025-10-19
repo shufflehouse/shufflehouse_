@@ -1,6 +1,5 @@
-/* Desktop only */
 @media only screen and (min-width: 768px) {
-  html.is-account .userInformationForm section:first-of-type {
+  html.is-account .userInformationForm section:nth-of-type(2) {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
@@ -12,27 +11,21 @@
     row-gap: 1.25rem;
   }
 
-  /* Header row spans both columns */
-  html.is-account .userInformationForm section:first-of-type > .row:first-child {
+  html.is-account .userInformationForm section:nth-of-type(2) > .row:first-child {
     grid-area: header;
   }
 
-  /* Place the targeted blocks */
   .firstNameBlock   { grid-area: firstName; }
   .lastNameBlock    { grid-area: lastName; }
   .profileLabelBlock{ grid-area: profileLabel; }
   .avatarRowBlock   { grid-area: avatarRow; }
 
-  /* Everything else full-width below */
-  html.is-account .userInformationForm section:first-of-type > *:not(.row):not(.firstNameBlock):not(.lastNameBlock):not(.profileLabelBlock):not(.avatarRowBlock) {
+  html.is-account .userInformationForm section:nth-of-type(2) > *:not(.row):not(.firstNameBlock):not(.lastNameBlock):not(.profileLabelBlock):not(.avatarRowBlock) {
     grid-column: 1 / -1;
   }
 
-  /* Hide pronouns */
-  html.is-account .userInformationForm label[for="pronouns"] {
-    display: none !important;
-  }
+  html.is-account .userInformationForm label[for="pronouns"],
   html.is-account .userInformationForm label[for="pronouns"] ~ * {
-    display: none !important; /* sublabel + control */
+    display: none !important;
   }
 }
