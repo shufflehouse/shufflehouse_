@@ -1,31 +1,25 @@
+/* Hide unwanted fields on all screens */
+html.is-account .userInformationForm label[for="pronouns"],
+html.is-account .userInformationForm label[for="pronouns"] ~ *,
+html.is-account .userInformationForm label[for="gender"],
+html.is-account .userInformationForm label[for="gender"] ~ * {
+  display: none !important;
+}
+
+/* Desktop two-column layout for the SECOND section */
 @media only screen and (min-width: 768px) {
   html.is-account .userInformationForm section:nth-of-type(2) {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-      "header header"
-      "firstName profileLabel"
-      "lastName avatarRow"
-      "rest rest";
-    column-gap: 2rem;
-    row-gap: 1.25rem;
+    gap: 1.25rem 2rem;
   }
-
   html.is-account .userInformationForm section:nth-of-type(2) > .row:first-child {
-    grid-area: header;
+    grid-column: 1 / -1; /* header spans both */
   }
-
-  .firstNameBlock   { grid-area: firstName; }
-  .lastNameBlock    { grid-area: lastName; }
-  .profileLabelBlock{ grid-area: profileLabel; }
-  .avatarRowBlock   { grid-area: avatarRow; }
-
-  html.is-account .userInformationForm section:nth-of-type(2) > *:not(.row):not(.firstNameBlock):not(.lastNameBlock):not(.profileLabelBlock):not(.avatarRowBlock) {
-    grid-column: 1 / -1;
-  }
-
-  html.is-account .userInformationForm label[for="pronouns"],
-  html.is-account .userInformationForm label[for="pronouns"] ~ * {
-    display: none !important;
+  html.is-account .userInformationForm section:nth-of-type(2) .col-left,
+  html.is-account .userInformationForm section:nth-of-type(2) .col-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
   }
 }
