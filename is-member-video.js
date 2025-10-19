@@ -2,8 +2,8 @@
   const CFG = {
     gateClass: 'is-video',
     memberClass: 'is-member',
-    videoSel: '.video-js',
-    filterSel: '.on-demand-category__filter',
+    videoSel: '.video-js',                    // “video file thing”
+    filterSel: '.on-demand-category__filter', // “on-demand thing”
     pollMs: 1000
   };
 
@@ -11,11 +11,18 @@
 
   function detect() {
     const html = document.documentElement;
-    const onVideo = html.classList.contains(CFG.gateClass);
-    const hasFilter = onVideo && !!document.querySelector(CFG.filterSel);
+    const onVideo   = html.classList.contains(CFG.gateClass);
     const hasVideo  = onVideo && !!document.querySelector(CFG.videoSel);
-    const state = onVideo && (hasFilter || hasVideo) ? 'member' : 'none';
-    return { onVideo, hasFilter, hasVideo, state };
+    const hasFilter = onVideo && !!document.querySelector(CFG.filterSel);
+
+    // Rule:
+    // 1) is-video && video => member
+    // 2) is-video && !video && filter => member
+    // 3) is-video && !video && !filter => none
+    // 4) not is-video => none
+    const member = onVideo && (hasVideo || (!hasVideo && hasFilter));
+    const state = member ? 'member' : 'none';
+    return { onVideo, hasVideo, hasFilter, state };
   }
 
   function apply(res) {
@@ -32,7 +39,7 @@
       if (res.state !== prev) {
         prev = res.state;
         console.info(
-          `[VideoRead] [#${++seq}] ${kind} → onVideo=${res.onVideo} | filter=${res.hasFilter} | hasVideo=${res.hasVideo} | state=${res.state}`
+          `[VideoRead] [#${++seq}] ${kind} → onVideo=${res.onVideo} | hasVideo=${res.hasVideo} | hasFilter=${res.hasFilter} | state=${res.state}`
         );
         if (window.top && window.top !== window) {
           window.top.postMessage({ source: 'arketa-video-monitor', type: 'change', ...res }, '*');
