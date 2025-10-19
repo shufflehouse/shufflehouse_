@@ -3,19 +3,18 @@
 
   function hideNextInvoiceOnce() {
     if (!document.documentElement.classList.contains('is-account')) return;
-    const el = Array.from(document.querySelectorAll('p.m-0.p-0.card-text'))
-      .find(p => /Next invoice/i.test(p.textContent));
-    if (el) { el.style.display = 'none'; clearInterval(scanTimer); }
+
+    document.querySelectorAll('p.m-0.p-0.card-text').forEach(p => {
+      if (/Next\s*invoice/i.test(p.textContent)) p.style.display = 'none';
+    });
+    // keep interval alive; more may load later
   }
 
-  // Start a brief polling window to catch lazy renders
   function scheduleScan() {
     if (scanTimer) clearInterval(scanTimer);
-    scanTimer = setInterval(hideNextInvoiceOnce, 400); // stops itself when found
-    // also try immediately
+    scanTimer = setInterval(hideNextInvoiceOnce, 400);
     hideNextInvoiceOnce();
-    // safety stop after 10s per activation
-    setTimeout(() => clearInterval(scanTimer), 10000);
+    setTimeout(() => clearInterval(scanTimer), 10000); // stop after 10s window
   }
 
   function watchTabs() {
@@ -24,7 +23,6 @@
     const nav = document.querySelector('nav.nav.nav-tabs[role="tablist"]');
     if (!nav) return;
 
-    // Recreate observer if needed
     if (navObserver) navObserver.disconnect();
     navObserver = new MutationObserver(muts => {
       for (const m of muts) {
@@ -37,12 +35,10 @@
     });
     navObserver.observe(nav, { subtree: true, attributes: true, attributeFilter: ['class'] });
 
-    // Also react to clicks/keyboard on the tablist
     nav.addEventListener('click', scheduleScan, { passive: true });
     nav.addEventListener('keyup', e => { if (e.key === 'Enter' || e.key === ' ') scheduleScan(); });
   }
 
-  // Re-bind when route changes or DOM is rebuilt
   const rebindSoon = () => setTimeout(watchTabs, 150);
   document.addEventListener('DOMContentLoaded', rebindSoon);
   window.addEventListener('popstate', rebindSoon);
@@ -50,11 +46,9 @@
   history.pushState   = function(){ _push.apply(this, arguments); rebindSoon(); };
   history.replaceState= function(){ _replace.apply(this, arguments); rebindSoon(); };
 
-  // Fallback: periodically ensure observers exist while on account
   setInterval(() => {
     if (document.documentElement.classList.contains('is-account')) watchTabs();
   }, 2000);
 
-  // initial
   watchTabs();
 })();
