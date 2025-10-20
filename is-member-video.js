@@ -1,28 +1,57 @@
 (function () {
-  const VIDEO = "is-video";
-  const PAY   = "is-paywall";
-  const THRESHOLD = 2000;
-  const SELECTOR = '#sutraWidgetIframe, iframe[src*="/iframe/"][src*="/videos"]';
+  const ROOT = document.documentElement;
+  const PAY  = "is-paywall";
+  const VIDEO_CLASS = "is-video";
+  const H_THRESH = 2000;
+  const IFRAME_SEL = '#sutraWidgetIframe, iframe[src*="/iframe/"][src*="/videos"]';
+  const VIDEO_JS_RX = /(^|\/)video(\.min)?\.js(\?|#|$)/i;
 
-  let ro = null, watched = null;
+  let hasVideoJs = false;
+  let ro = null, watched = null, pollId = null;
+
+  // Try to detect video.js via PerformanceObserver (best effort).
+  try {
+    if (window.PerformanceObserver) {
+      const po = new PerformanceObserver((list) => {
+        for (const e of list.getEntries()) {
+          if (e.name && VIDEO_JS_RX.test(e.name)) {
+            hasVideoJs = true;
+          }
+        }
+        apply();
+      });
+      po.observe({ type: "resource", buffered: true });
+    }
+  } catch (_) { /* noop */ }
+
+  // Heuristic fallback: videos route implies video.js likely present.
+  function videoJsHeuristic() {
+    const f = iframeEl();
+    return !!(f && typeof f.src === "string" && /\/iframe\/[^/]+\/videos/i.test(f.src));
+  }
 
   function iframeEl() {
-    return document.querySelector(SELECTOR);
+    return document.querySelector(IFRAME_SEL);
+  }
+
+  function currentHeight() {
+    const f = iframeEl();
+    if (!f) return 0;
+    const r = f.getBoundingClientRect();
+    return r.height || 0;
   }
 
   function apply() {
-    const root = document.documentElement;
-    if (!root.classList.contains(VIDEO)) {
-      root.classList.remove(PAY);
+    if (!ROOT.classList.contains(VIDEO_CLASS)) {
+      ROOT.classList.remove(PAY);
       return;
     }
-    const f = iframeEl();
-    if (!f) return;
-    const h = f.getBoundingClientRect().height || 0;
-    root.classList.toggle(PAY, h < THRESHOLD);
+    const okVideo = hasVideoJs || videoJsHeuristic();
+    const h = currentHeight();
+    ROOT.classList.toggle(PAY, okVideo && h < H_THRESH);
   }
 
-  function watch(el) {
+  function watchIframe(el) {
     if (watched === el) return;
     if (ro) ro.disconnect();
     watched = null;
@@ -32,22 +61,30 @@
     watched = el;
   }
 
-  // Observe DOM for iframe/class changes so we can attach RO when elements appear.
+  function startPolling() {
+    if (pollId) return;
+    pollId = setInterval(apply, 400);
+  }
+  function stopPolling() {
+    if (pollId) { clearInterval(pollId); pollId = null; }
+  }
+
+  // React when the route flag appears/disappears or DOM changes.
   const mo = new MutationObserver(() => {
-    watch(iframeEl());
+    const el = iframeEl();
+    watchIframe(el);
+    if (ROOT.classList.contains(VIDEO_CLASS)) startPolling();
+    else stopPolling();
     apply();
   });
-  mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-  mo.observe(document.body || document.documentElement, { childList: true, subtree: true });
+  mo.observe(ROOT, { attributes: true, attributeFilter: ["class"] });
+  mo.observe(document.body || ROOT, { childList: true, subtree: true });
 
   // Fallback listeners
   window.addEventListener("resize", apply);
-  window.addEventListener("load", apply);
-  document.addEventListener("DOMContentLoaded", () => {
-    watch(iframeEl());
-    apply();
-  });
+  window.addEventListener("load", () => { watchIframe(iframeEl()); apply(); });
+  document.addEventListener("DOMContentLoaded", () => { watchIframe(iframeEl()); apply(); });
 
-  // Safety poll in case nothing fires
-  setInterval(() => { watch(iframeEl()); apply(); }, 500);
+  // Safety tick
+  setInterval(() => { watchIframe(iframeEl()); apply(); }, 1500);
 })();
