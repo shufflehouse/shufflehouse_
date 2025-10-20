@@ -1,61 +1,78 @@
 (function () {
   const CFG = {
-    gateClass: 'is-video',
     paywallClass: 'is-paywall',
-    videoSel: '.video-js',
     iframeId: 'sutraWidgetIframe',
     pollMs: 500,
-    heightThreshold: 2000
+    heightThreshold: 2000,
+    videoSrcPattern: /\/iframe\/[^/]+\/videos/i
   };
 
-  let ro = null, observedEl = null;
+  let ro = null, observed = null;
+  let lastHeight = 0;
 
-  function getIframeHeight(el) {
+  function getIframe() {
+    return document.getElementById(CFG.iframeId) || null;
+  }
+
+  function getHeight(el) {
     if (!el) return 0;
-    try {
-      const cs = getComputedStyle(el);
-      const r  = el.getBoundingClientRect().height || 0;
-      const oh = el.offsetHeight || 0;
-      const ch = el.clientHeight || 0;
-      const sh = parseFloat(cs.height) || 0;
-      return Math.max(r, oh, ch, sh);
-    } catch { return 0; }
+    const r = el.getBoundingClientRect();
+    return r.height || el.offsetHeight || 0;
   }
 
-  function compute() {
+  function onVideoPage(f) {
+    return !!(f && typeof f.src === 'string' && CFG.videoSrcPattern.test(f.src));
+  }
+
+  function apply(paywall) {
     const html = document.documentElement;
-    const onVideo = html.classList.contains(CFG.gateClass);
-    const hasVideo = onVideo && !!document.querySelector(CFG.videoSel);
-    const iframe = onVideo ? document.getElementById(CFG.iframeId) : null;
-    const h = getIframeHeight(iframe);
-
-    // Only this condition adds paywall:
-    const shouldPaywall = onVideo && !hasVideo && h >= CFG.heightThreshold;
-
-    if (shouldPaywall) html.classList.add(CFG.paywallClass);
+    if (paywall) html.classList.add(CFG.paywallClass);
     else html.classList.remove(CFG.paywallClass);
-
-    ensureIframeObserver(iframe);
   }
 
-  function ensureIframeObserver(el) {
-    if (observedEl === el) return;
+  function ensureRO(el) {
+    if (observed === el) return;
     if (ro) ro.disconnect();
-    observedEl = null;
+    observed = null;
     if (!el) return;
-    ro = new ResizeObserver(() => compute());
+    ro = new ResizeObserver(() => tick('resize'));
     ro.observe(el);
-    observedEl = el;
+    observed = el;
   }
+
+  function tick(kind) {
+    const f = getIframe();
+    ensureRO(f);
+
+    const onVideo = onVideoPage(f);
+    lastHeight = getHeight(f);
+
+    // Parent-visible rule:
+    // add is-paywall iff onVideo && height >= 2000; else remove
+    const shouldPaywall = onVideo && lastHeight >= CFG.heightThreshold;
+    apply(shouldPaywall);
+
+    // console.log(`[paywall] ${kind} onVideo=${onVideo} h=${Math.round(lastHeight)} → ${shouldPaywall}`);
+  }
+
+  // Optional: listen to embed height postMessage from the iframe if it sends it
+  window.addEventListener('message', (e) => {
+    const d = e.data;
+    if (d && typeof d.embedHeight === 'number') {
+      // trust the reported height for faster reaction
+      lastHeight = d.embedHeight;
+      tick('msg');
+    }
+  });
 
   function start() {
-    compute();
-    setInterval(compute, CFG.pollMs);
-    window.addEventListener('resize', compute);
-    window.addEventListener('popstate', compute);
-    window.addEventListener('hashchange', compute);
-    document.addEventListener('visibilitychange', compute);
-    window.addEventListener('load', compute);
+    tick('init');
+    setInterval(() => tick('poll'), CFG.pollMs);
+    window.addEventListener('resize', () => tick('win'));
+    window.addEventListener('popstate', () => tick('nav'));
+    window.addEventListener('hashchange', () => tick('nav'));
+    document.addEventListener('visibilitychange', () => tick('vis'));
+    window.addEventListener('load', () => tick('load'));
   }
 
   if (document.readyState === 'loading') {
