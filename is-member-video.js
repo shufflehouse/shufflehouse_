@@ -10,15 +10,17 @@
 
   let prev = 'none';
   let seq = 0;
-  let ro = null;            // ResizeObserver
-  let observedEl = null;    // currently observed iframe
+  let ro = null;
+  let observedEl = null;
 
   function getIframeHeight(el) {
     if (!el) return 0;
     try {
       const r = el.getBoundingClientRect();
       return r.height || el.offsetHeight || 0;
-    } catch { return 0; }
+    } catch {
+      return 0;
+    }
   }
 
   function detect() {
@@ -27,7 +29,12 @@
     const hasVideo = onVideo && !!document.querySelector(CFG.videoSel);
     const iframe = onVideo ? document.getElementById(CFG.iframeId) : null;
     const height = getIframeHeight(iframe);
-    const shouldPaywall = onVideo && !hasVideo && height < CFG.heightThreshold;
+
+    // Logic:
+    // is-video + no .video-js + (height >= 2000 OR iframe missing) → add is-paywall
+    // else remove
+    const shouldPaywall = onVideo && !hasVideo && (height >= CFG.heightThreshold || height === 0);
+
     return { onVideo, hasVideo, height, shouldPaywall, iframe };
   }
 
@@ -38,10 +45,9 @@
   }
 
   function ensureIframeObserver(el) {
-    if (observedEl === el) return;           // already observing this one
+    if (observedEl === el) return;
     if (ro) ro.disconnect();
     observedEl = null;
-
     if (!el) return;
     ro = new ResizeObserver(() => tick('resize'));
     ro.observe(el);
@@ -53,11 +59,12 @@
       const res = detect();
       apply(res);
       ensureIframeObserver(res.iframe);
-
       const state = res.shouldPaywall ? 'paywall' : 'none';
       if (state !== prev) {
         prev = state;
-        console.info(`[PaywallCheck] [#${++seq}] ${kind} → onVideo=${res.onVideo} | hasVideo=${res.hasVideo} | iframeH=${Math.round(res.height)} | paywall=${res.shouldPaywall}`);
+        console.info(
+          `[PaywallCheck] [#${++seq}] ${kind} → onVideo=${res.onVideo} | hasVideo=${res.hasVideo} | iframeH=${Math.round(res.height)} | paywall=${res.shouldPaywall}`
+        );
       }
     } catch (e) {
       console.warn('[PaywallCheck] error:', e);
@@ -74,9 +81,7 @@
     window.addEventListener('load', () => tick('load'));
   }
 
-  if (document.readyState === 'loading') {
+  if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', start, { once: true });
-  } else {
-    start();
-  }
+  else start();
 })();
