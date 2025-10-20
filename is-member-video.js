@@ -1,29 +1,47 @@
 (function () {
-  const ROOT = document.documentElement;
-  const IFRAME_SEL = '#sutraWidgetIframe, iframe[src*="/iframe/"][src*="/videos"]';
-  const H_THRESH = 2000;
+  const POLL_MS = 400;
+  const SEL = '#sutraWidgetIframe, iframe[src*="/iframe/"][src*="/videos"]';
+  let lastIsVideo = false;
+  let lastEl = null;
+  let lastH = null;
 
-  function iframeEl(){ return document.querySelector(IFRAME_SEL); }
-  function height(){ const f=iframeEl(); return f ? (f.getBoundingClientRect().height||0) : 0; }
-
-  function apply(){
-    if (!ROOT.classList.contains('is-video')) return ROOT.classList.remove('is-paywall');
-    ROOT.classList.toggle('is-paywall', height() < H_THRESH);
+  function iframeEl() { return document.querySelector(SEL); }
+  function heightOf(el) {
+    if (!el) return 0;
+    const r = el.getBoundingClientRect();
+    return Math.round(r.height || el.offsetHeight || 0);
   }
 
-  // react to size changes + lazy loads
-  let ro; const watch = el => { if (ro) ro.disconnect(); if (el){ ro=new ResizeObserver(apply); ro.observe(el); } };
-  const rebind = () => watch(iframeEl());
+  function tick() {
+    const isVideo = document.documentElement.classList.contains('is-video');
 
-  // wires
-  document.addEventListener('DOMContentLoaded', () => { rebind(); apply(); });
-  window.addEventListener('load', () => { rebind(); apply(); });
-  window.addEventListener('resize', apply);
+    if (!isVideo) {
+      if (lastIsVideo) console.log('[vid] left is-video');
+      lastIsVideo = false; lastEl = null; lastH = null;
+      return;
+    }
+    if (!lastIsVideo) console.log('[vid] entered is-video');
+    lastIsVideo = true;
 
-  // keep alive for SPA/lazy DOM
-  const mo = new MutationObserver(() => { rebind(); apply(); });
-  mo.observe(ROOT, { attributes:true, attributeFilter:['class'] });
-  mo.observe(document.body || ROOT, { childList:true, subtree:true });
+    const f = iframeEl();
+    if (!f) { 
+      if (lastEl !== null) console.log('[vid] iframe not found');
+      lastEl = null; lastH = null;
+      return;
+    }
+    if (f !== lastEl) {
+      lastEl = f; lastH = null;
+      console.log('[vid] iframe found');
+    }
 
-  setInterval(apply, 500);
+    const h = heightOf(f);
+    if (lastH === null || h !== lastH) {
+      console.log(`[vid] iframe height = ${h}px`);
+      lastH = h;
+    }
+  }
+
+  setInterval(tick, POLL_MS);
+  document.addEventListener('DOMContentLoaded', tick);
+  window.addEventListener('load', tick);
 })();
