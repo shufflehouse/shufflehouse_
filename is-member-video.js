@@ -1,17 +1,17 @@
 (function () {
   const CFG = {
     gateClass: 'is-video',
-    notMemberClass: 'isnot-member',
+    paywallClass: 'is-paywall',
     videoSel: '.video-js',
     iframeId: 'sutraWidgetIframe',
     pollMs: 1000,
-    heightThreshold: 1000
+    heightThreshold: 2000
   };
 
-  let prev = 'unknown';
+  let prev = 'none';
   let seq = 0;
 
-  function iframeHeight(el) {
+  function getIframeHeight(el) {
     if (!el) return 0;
     try {
       const r = el.getBoundingClientRect();
@@ -26,45 +26,33 @@
     const onVideo = html.classList.contains(CFG.gateClass);
     const hasVideo = onVideo && !!document.querySelector(CFG.videoSel);
     const iframe = onVideo ? document.getElementById(CFG.iframeId) : null;
-    const height = iframeHeight(iframe);
+    const height = getIframeHeight(iframe);
 
-    // Only one case triggers "not-member"
-    const notMember = onVideo && !hasVideo && height < CFG.heightThreshold;
-    const state = notMember ? 'not-member' : 'none';
-
-    return { onVideo, hasVideo, height, state };
+    const shouldPaywall = onVideo && !hasVideo && height < CFG.heightThreshold;
+    return { onVideo, hasVideo, height, shouldPaywall };
   }
 
   function apply(res) {
     const html = document.documentElement;
-    if (res.state === 'not-member') {
-      html.classList.add(CFG.notMemberClass);
-    } else {
-      html.classList.remove(CFG.notMemberClass);
-    }
-    window.__arketaVideoMember = res.state;
+    if (res.shouldPaywall) html.classList.add(CFG.paywallClass);
+    else html.classList.remove(CFG.paywallClass);
   }
 
   function tick(kind) {
     try {
       const res = detect();
       apply(res);
-      if (res.state !== prev) {
-        prev = res.state;
+      const state = res.shouldPaywall ? 'paywall' : 'none';
+      if (state !== prev) {
+        prev = state;
         console.info(
-          `[VideoRead] [#${++seq}] ${kind} → onVideo=${res.onVideo} | hasVideo=${res.hasVideo} | iframeHeight=${Math.round(
+          `[PaywallCheck] [#${++seq}] ${kind} → onVideo=${res.onVideo} | hasVideo=${res.hasVideo} | iframeH=${Math.round(
             res.height
-          )} | state=${res.state}`
+          )} | paywall=${res.shouldPaywall}`
         );
-        if (window.top && window.top !== window) {
-          window.top.postMessage(
-            { source: 'arketa-video-monitor', type: 'change', ...res },
-            '*'
-          );
-        }
       }
     } catch (e) {
-      console.warn('[VideoRead] error:', e);
+      console.warn('[PaywallCheck] error:', e);
     }
   }
 
@@ -77,9 +65,7 @@
     window.addEventListener('load', () => tick('load'));
   }
 
-  if (document.readyState === 'loading') {
+  if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', start, { once: true });
-  } else {
-    start();
-  }
+  else start();
 })();
