@@ -1,27 +1,28 @@
 (function () {
   function hideRenewPs(root = document) {
     root.querySelectorAll('.form-group p.mb-0').forEach(p => {
-      if (/Renews/i.test(p.textContent)) p.style.display = 'none';
+      if (/Renews/i.test(p.textContent)) {
+        // force-hide even against !important rules
+        p.style.setProperty('display', 'none', 'important');
+        p.setAttribute('data-hidden-renews', '1');
+      }
     });
   }
 
-  // Run on load
-  document.addEventListener('DOMContentLoaded', () => {
-    hideRenewPs();
-
-    // Watch for late-loaded content inside .form-group
-    const fg = document.querySelector('.form-group');
-    if (!fg) return;
-
+  function observe(target) {
     new MutationObserver(muts => {
       for (const m of muts) {
         for (const n of m.addedNodes) {
           if (n.nodeType === 1) hideRenewPs(n);
         }
       }
-    }).observe(fg, { childList: true, subtree: true });
+    }).observe(target, { childList: true, subtree: true });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    hideRenewPs();
+    observe(document.body); // catch re-renders anywhere
   });
 
-  // Also run on any click just in case UI injects content on interaction
   document.addEventListener('click', hideRenewPs);
 })();
