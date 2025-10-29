@@ -1,28 +1,42 @@
 (function () {
-  function hideRenewPs(root = document) {
-    root.querySelectorAll('.form-group p.mb-0').forEach(p => {
-      if (/Renews/i.test(p.textContent)) {
-        // force-hide even against !important rules
-        p.style.setProperty('display', 'none', 'important');
-        p.setAttribute('data-hidden-renews', '1');
+  function allPsDeep(root) {
+    const out = [];
+    const walker = (node) => {
+      if (node.querySelectorAll) out.push(...node.querySelectorAll('p'));
+      const kids = node.children ? [...node.children] : [];
+      for (const k of kids) {
+        if (k.shadowRoot) walker(k.shadowRoot);
+      }
+    };
+    walker(root);
+    return out;
+  }
+
+  function hideOrBlankRenews(root = document) {
+    allPsDeep(root).forEach(p => {
+      const txt = (p.textContent || '').trim();
+      if (/Renews/i.test(txt)) {
+        // multiple strategies so one wins
+        p.textContent = '';                 // remove text
+        p.hidden = true;                    // HTML hidden
+        p.style.setProperty('display','none','important'); // force hide
+        p.setAttribute('data-hidden-renews','1');
       }
     });
   }
 
-  function observe(target) {
-    new MutationObserver(muts => {
-      for (const m of muts) {
-        for (const n of m.addedNodes) {
-          if (n.nodeType === 1) hideRenewPs(n);
-        }
-      }
-    }).observe(target, { childList: true, subtree: true });
-  }
+  // initial + click + observer
+  const run = () => { try { hideOrBlankRenews(); } catch(e) { console.error(e); } };
+  document.addEventListener('DOMContentLoaded', run);
+  document.addEventListener('click', run);
 
-  document.addEventListener('DOMContentLoaded', () => {
-    hideRenewPs();
-    observe(document.body); // catch re-renders anywhere
+  new MutationObserver(() => run())
+    .observe(document.documentElement, { childList: true, subtree: true });
+
+  // if in an iframe, also try each frame
+  [...document.querySelectorAll('iframe')].forEach(f => {
+    try {
+      f.addEventListener('load', () => hideOrBlankRenews(f.contentDocument));
+    } catch {}
   });
-
-  document.addEventListener('click', hideRenewPs);
 })();
