@@ -1,14 +1,9 @@
-function removeRenewCards() {
-  document.querySelectorAll('.form-group .card').forEach(card => {
-    if (card.textContent.includes('Renews')) card.remove();
+function removeRenewParagraphs() {
+  document.querySelectorAll('.form-group p').forEach(p => {
+    if (p.textContent.includes('Renews')) p.remove();
   });
 }
 
-// Run once on load
-document.addEventListener('DOMContentLoaded', removeRenewCards);
-
-// Run on clicks
-document.addEventListener('click', removeRenewCards);
-
-// Poll every second for late-loaded content
-setInterval(removeRenewCards, 1000);
+document.addEventListener('DOMContentLoaded', removeRenewParagraphs);
+document.addEventListener('click', removeRenewParagraphs);
+setInterval(removeRenewParagraphs, 1000);
