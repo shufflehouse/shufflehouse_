@@ -59,7 +59,9 @@ mb-4 .div {
 
 /* Schedule Sign Up Button */
 .p-1.card-body .btn.btn-primary.primaryColor {
-    border-radius: 20px!important;
+    /* border-radius: 20px!important; */
+  padding: 5px 11px!important;
+  border-radius: 12px!important;
 }
 
 
@@ -114,6 +116,7 @@ mb-4 .div {
 .card-list__card-group {
   /* font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; */
   background: #fff;
+  border-top: 1px solid #00000010;
 }
 
 .container.week-range {
@@ -198,6 +201,11 @@ mb-4 .div {
   margin-top: 4px;
 }
 
+.card-list__card-group .mb-2.card-text {
+    max-width: 220px;
+}
+    
+
 /* ================================
    VIEW DETAILS LINK
 ================================ */
@@ -223,8 +231,6 @@ mb-4 .div {
   color: #111827!important;
   font-weight: 600;
   font-size: 14px;
-  padding: 5px 11px!important;
-  border-radius: 12px!important;
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
@@ -242,7 +248,7 @@ mb-4 .div {
 }
 
 /* description text */
-.card-list__card-group .collapse .card-text {
+.card-list__card-group .collapse .card-text span {
   font-size: 14px;
   line-height: 1.6;
   color: #374151;
