@@ -109,27 +109,32 @@ mb-4 .div {
 }
 
 @media only screen and (max-width: 375px) {
-.card-list__card-group .class-list__day h5 {
+.card-list__card-group .card-title {
     max-width: calc(100% - 100px);
 }
 }
 @media only screen and (max-width: 400px) {
-.card-list__card-group .class-list__day h5 {
+.card-list__card-group .card-title5 {
     max-width: calc(100% - 125px);
 }
 }
-@media only screen and (max-width: 450px) {
-.card-list__card-group .class-list__day h5 {
+@media only screen and (max-width: 425px) {
+.card-list__card-group .card-title5 {
     max-width: calc(100% - 150px);
 }
 }
+@media only screen and (max-width: 450px) {
+.card-list__card-group .card-title {
+    max-width: calc(100% - 160px);
+}
+}
 @media only screen and (max-width: 475px) {
-.card-list__card-group .class-list__day h5 {
+.card-list__card-group .card-title {
     max-width: calc(100% - 175px);
 }
 }
 @media only screen and (max-width: 500px) {
-.card-list__card-group .class-list__day h5 {
+.card-list__card-group .card-title {
     max-width: calc(100% - 200px);
 }
 }
