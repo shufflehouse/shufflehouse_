@@ -1,4 +1,3 @@
-<script>
 (function () {
   function replaceCancelModalLine() {
     if (!document.documentElement.classList.contains('is-account')) return;
@@ -37,4 +36,3 @@
 
   replaceCancelModalLine();
 })();
-</script>
