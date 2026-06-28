@@ -5,6 +5,14 @@
 }
 */ 
 
+.model-content {
+    height: 100vh!important;
+}
+
+.modal-body {
+    max-height: 100%!important;
+}
+
 /* Hide Logo */
 
 #logo {
