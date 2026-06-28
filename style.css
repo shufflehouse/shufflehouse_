@@ -13,6 +13,17 @@
     max-height: 100%!important;
 }
 
+.offering-terms p {
+    font-size: 0.8rem!important;
+    line-height: 1!important;
+}
+
+.offering-terms .text-right mb-5 {
+    margin-bottom: 0rem!important;
+}
+
+
+
 /* Hide Logo */
 
 #logo {
