@@ -18,10 +18,13 @@
     line-height: 1!important;
 }
 
-.offering-terms .text-right mb-5 {
+.offering-terms .text-right.mb-5 {
     margin-bottom: 0rem!important;
 }
 
+.offering-terms .d-flex.flex-wrap.p-4.rounded{
+    display: none!important;
+}
 
 
 /* Hide Logo */
